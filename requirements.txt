@@ -1,0 +1,4 @@
+# AlgoScope relies entirely on Python's built-in standard library and Tkinter.
+# No external pip dependencies are required.
+# Python 3.10 or higher is recommended.
+
