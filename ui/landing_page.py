@@ -16,7 +16,7 @@ from core.theme import (
     STATE_DEFAULT, STATE_COMPARE, STATE_ACTIVE, STATE_SORTED, STATE_SECONDARY,
     FONT_HEADING_1, FONT_HEADING_2, FONT_HEADING_3, FONT_HEADING_4, FONT_HEADING_5,
     FONT_TITLE_1, FONT_TITLE_2, FONT_TITLE_3, FONT_TITLE_4, FONT_BODY_3, FONT_BODY_6,
-    FONT_BUTTON_LG, FONT_BUTTON_MD, FONT_BUTTON_SM, FONT_CAPTION_1,
+    FONT_BUTTON_LG, FONT_BUTTON_MD, FONT_BUTTON_SM, FONT_CAPTION_1, FONT_CAPTION_3, FONT_CODE_SM,
     SPACING_100, SPACING_200, SPACING_300, SPACING_400, SPACING_500, SPACING_600
 )
 from ui.components import StyledButton, CardFrame, Badge, SlidingPillNav
@@ -196,14 +196,14 @@ class LandingPage(tk.Frame):
         hero_frame = tk.Frame(self.scroll_frame, bg=COLOR_BLACK)
         hero_frame.pack(fill="x", padx=SPACING_600, pady=(SPACING_500, SPACING_600))
 
-        # Proof badge at top
+        # Editorial eyebrow; avoid unsupported social-proof claims.
         proof_badge = Badge(
             hero_frame,
-            text="Trusted by 10,000+ students and educators • 100% execution driven",
+            text="A VISUAL WORKBENCH FOR COMPUTER SCIENCE",
             bg_color=COLOR_SURFACE_2,
             fg_color=STATE_DEFAULT
         )
-        proof_badge.pack(anchor="w", pady=(0, SPACING_200))
+        proof_badge.pack(anchor="w", pady=(0, SPACING_300))
 
         content_row = tk.Frame(hero_frame, bg=COLOR_BLACK)
         content_row.pack(fill="x")
@@ -215,7 +215,7 @@ class LandingPage(tk.Frame):
         # Main Heading
         lbl_heading = tk.Label(
             left_col,
-            text="Understand Algorithms.\nVisualize Every Step.",
+            text="Make the invisible\npart of the lesson.",
             bg=COLOR_BLACK,
             fg=COLOR_TEXT_PRIMARY,
             font=FONT_HEADING_1,
@@ -227,11 +227,11 @@ class LandingPage(tk.Frame):
         # Subheading (Capped at meaningful line breaks)
         lbl_sub = tk.Label(
             left_col,
-            text="Explore the world of Data Structures and Algorithms through interactive visualizations, step-by-step execution and performance analysis.",
+            text="Trace real algorithms as they compare, move, and transform data. One deliberate step at a time.",
             bg=COLOR_BLACK,
             fg=COLOR_TEXT_SECONDARY,
             font=FONT_TITLE_3,
-            wraplength=600,
+            wraplength=470,
             justify="left",
             anchor="w"
         )
@@ -262,7 +262,7 @@ class LandingPage(tk.Frame):
         # Risk reversal / local assurance per SKILL.md A4
         lbl_risk = tk.Label(
             left_col,
-            text="✔ Free and open educational tool  •  Runs completely offline  •  No account required",
+            text="Python + Tkinter  ·  Runs locally  ·  No account required",
             bg=COLOR_BLACK,
             fg=COLOR_TEXT_MUTED,
             font=FONT_CAPTION_1
@@ -270,7 +270,7 @@ class LandingPage(tk.Frame):
         lbl_risk.pack(anchor="w")
 
         # Right Column: Live Tkinter Canvas sorting visualizer
-        right_col = tk.Frame(content_row, bg=COLOR_BLACK, width=480, height=360)
+        right_col = tk.Frame(content_row, bg=COLOR_BLACK, width=480, height=380)
         right_col.pack(side="right", fill="both", expand=True)
         right_col.pack_propagate(False)
 
@@ -283,19 +283,46 @@ class LandingPage(tk.Frame):
 
         lbl_live_tag = tk.Label(
             live_header,
-            text="● LIVE CANVAS DEMO  —  Bubble Sort vs Quick Sort",
+            text="●  LIVE EXECUTION     /     BUBBLE SORT",
             bg=COLOR_SURFACE_1,
-            fg=STATE_SORTED,
+            fg=STATE_DEFAULT,
             font=FONT_CAPTION_1
         )
         lbl_live_tag.pack(side="left")
+
+        lbl_live_step = tk.Label(
+            live_header,
+            text="COMPARING ADJACENT VALUES",
+            bg=COLOR_SURFACE_1,
+            fg=COLOR_TEXT_MUTED,
+            font=FONT_CAPTION_3
+        )
+        lbl_live_step.pack(side="right")
 
         self.hero_canvas = tk.Canvas(
             hero_card.body,
             bg=COLOR_SURFACE_2,
             highlightthickness=0
         )
-        self.hero_canvas.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self.hero_canvas.pack(fill="both", expand=True, padx=10, pady=(0, 4))
+
+        legend = tk.Frame(hero_card.body, bg=COLOR_SURFACE_1, padx=12, pady=8)
+        legend.pack(fill="x")
+        for label, color in (
+            ("COMPARE", STATE_COMPARE),
+            ("IN MOTION", STATE_ACTIVE),
+            ("SORTED", STATE_SORTED),
+        ):
+            item = tk.Frame(legend, bg=COLOR_SURFACE_1)
+            item.pack(side="left", padx=(0, SPACING_300))
+            tk.Frame(item, bg=color, width=7, height=7).pack(side="left", padx=(0, 6))
+            tk.Label(
+                item,
+                text=label,
+                bg=COLOR_SURFACE_1,
+                fg=COLOR_TEXT_SECONDARY,
+                font=FONT_CAPTION_3
+            ).pack(side="left")
 
     def _init_hero_animation(self):
         """Runs a continuous real-time sorting animation in the hero card."""
@@ -312,12 +339,12 @@ class LandingPage(tk.Frame):
         h = self.hero_canvas.winfo_height()
 
         if w > 20 and h > 20:
-            self.hero_canvas.delete("all")
             n = len(self.hero_data)
             bar_w = (w - 24) / n
             max_v = max(self.hero_data) if max(self.hero_data) > 0 else 1
 
             # Advance bubble sort single step
+            comparing = (self.hero_j, self.hero_j + 1)
             if self.hero_i < n:
                 if self.hero_j < n - self.hero_i - 1:
                     if self.hero_data[self.hero_j] > self.hero_data[self.hero_j + 1]:
@@ -334,6 +361,13 @@ class LandingPage(tk.Frame):
                 self.hero_i = 0
                 self.hero_j = 0
 
+            self.hero_canvas.delete("all")
+            for guide in (0.25, 0.5, 0.75):
+                y = 8 + (h - 32) * guide
+                self.hero_canvas.create_line(
+                    12, y, w - 12, y, fill=COLOR_BORDER, dash=(2, 5)
+                )
+
             # Draw bars
             for idx, val in enumerate(self.hero_data):
                 bx0 = 12 + idx * bar_w
@@ -343,15 +377,16 @@ class LandingPage(tk.Frame):
                 by0 = by1 - bh
 
                 color = STATE_DEFAULT
-                if idx == self.hero_j or idx == self.hero_j + 1:
-                    color = STATE_ACTIVE
-                elif idx >= n - self.hero_i:
+                if idx >= n - self.hero_i:
                     color = STATE_SORTED
+                elif idx in comparing:
+                    color = STATE_COMPARE
+                if idx == comparing[0] and self.hero_i < n:
+                    color = STATE_ACTIVE
 
                 self.hero_canvas.create_rectangle(bx0, by0, bx1, by1, fill=color, outline="")
 
-        # Schedule next tick (70ms)
-        self.after(70, self._step_hero_sort)
+        self.after(110, self._step_hero_sort)
 
     # ------------------ 3. INTERACTIVE PREVIEW SECTION ------------------
     def _build_preview_section(self):
@@ -361,7 +396,7 @@ class LandingPage(tk.Frame):
 
         lbl_title = tk.Label(
             sec,
-            text="Interactive Visualizations at a Glance",
+            text="Start with a trace.",
             bg=COLOR_BLACK,
             fg=COLOR_TEXT_PRIMARY,
             font=FONT_HEADING_3
@@ -370,7 +405,7 @@ class LandingPage(tk.Frame):
 
         lbl_desc = tk.Label(
             sec,
-            text="Explore dynamic representations designed to demystify complex pointer manipulations and transformations.",
+            text="Pick a visualizer to follow the state changes that make an algorithm work.",
             bg=COLOR_BLACK,
             fg=COLOR_TEXT_SECONDARY,
             font=FONT_TITLE_4
@@ -403,14 +438,40 @@ class LandingPage(tk.Frame):
         p = tk.Frame(parent, bg=COLOR_SURFACE_1, padx=14, pady=14)
         p.pack(fill="both", expand=True)
 
-        lbl = tk.Label(p, text=title, bg=COLOR_SURFACE_1, fg=COLOR_TEXT_PRIMARY, font=FONT_TITLE_2)
+        module = {"sorting": "Sorting", "graph": "Graphs", "tree": "Trees"}[kind]
+        lbl = tk.Label(
+            p, text=title, bg=COLOR_SURFACE_1, fg=COLOR_TEXT_PRIMARY,
+            font=FONT_TITLE_2, cursor="hand2"
+        )
         lbl.pack(anchor="w")
 
-        lbl_sub = tk.Label(p, text=subtitle, bg=COLOR_SURFACE_1, fg=COLOR_TEXT_MUTED, font=FONT_CAPTION_1)
+        lbl_sub = tk.Label(
+            p, text=subtitle, bg=COLOR_SURFACE_1, fg=COLOR_TEXT_MUTED,
+            font=FONT_CAPTION_1, cursor="hand2"
+        )
         lbl_sub.pack(anchor="w", pady=(0, 10))
 
-        canv = tk.Canvas(p, bg=COLOR_SURFACE_2, height=140, highlightthickness=0)
+        canv = tk.Canvas(
+            p, bg=COLOR_SURFACE_2, height=140, highlightthickness=0,
+            cursor="hand2"
+        )
         canv.pack(fill="x", expand=True)
+
+        open_label = tk.Label(
+            p,
+            text="EXPLORE IN WORKSPACE  →",
+            bg=COLOR_SURFACE_1,
+            fg=STATE_DEFAULT,
+            font=FONT_CAPTION_1,
+            cursor="hand2"
+        )
+        open_label.pack(anchor="w", pady=(10, 0))
+
+        for widget in (p, lbl, lbl_sub, canv, open_label):
+            widget.bind(
+                "<Button-1>",
+                lambda _event, name=module: self.on_open_module(name)
+            )
 
         if kind == "sorting":
             self.p_sort_canvas = canv
@@ -519,7 +580,7 @@ class LandingPage(tk.Frame):
 
         lbl_title = tk.Label(
             sec,
-            text="Comprehensive DSA Learning Capabilities",
+            text="Six labs. One execution engine.",
             bg=COLOR_BLACK,
             fg=COLOR_TEXT_PRIMARY,
             font=FONT_HEADING_3
@@ -528,7 +589,7 @@ class LandingPage(tk.Frame):
 
         lbl_sub = tk.Label(
             sec,
-            text="Everything you need to master algorithmic thinking, data structures, and asymptotic complexity in one unified desktop suite.",
+            text="Move from a single comparison to whole-system performance without leaving the workspace.",
             bg=COLOR_BLACK,
             fg=COLOR_TEXT_SECONDARY,
             font=FONT_TITLE_4
@@ -543,12 +604,12 @@ class LandingPage(tk.Frame):
         grid.columnconfigure(2, weight=1)
 
         features_info = [
-            ("Sorting Algorithms", "Step-by-step bar visualizer for Bubble, Selection, Insertion, Merge, Quick, and Heap Sort with real comparisons and swaps.", "⇅"),
-            ("Searching Algorithms", "Linear, Binary, Jump, and Interpolation searches with interval boundary tracking and sorted state enforcement.", "⌕"),
-            ("Graph Algorithms", "Interactive graph creation with BFS, DFS, Dijkstra, A*, Prim, and Kruskal algorithms and shortest path highlights.", "☊"),
-            ("Tree Algorithms", "Self-balancing AVL Tree and BST visualizers demonstrating balance factors, rotations (LL, RR, LR, RL), and 4 traversals.", "⚯"),
-            ("Data Structures", "Visual memory animations for Stacks (LIFO), Queues (FIFO), Circular Queues, Linked Lists, and Hash Table collision resolution.", "☵"),
-            ("Performance Analysis", "Live non-fake benchmarking measuring real execution time (ms), comparisons, and swaps across varying input sizes.", "⚡")
+            ("Sorting Algorithms", "Bubble, Selection, Insertion, Merge, Quick, and Heap Sort with real comparisons and swaps.", "01"),
+            ("Searching Algorithms", "Linear, Binary, Jump, and Interpolation searches with interval boundary tracking.", "02"),
+            ("Graph Algorithms", "Build a graph and inspect BFS, DFS, shortest paths, and minimum spanning trees.", "03"),
+            ("Tree Algorithms", "Explore BST and AVL balancing, rotations, and four traversal strategies.", "04"),
+            ("Data Structures", "Watch stacks, queues, linked lists, and hash-table collision handling change in memory.", "05"),
+            ("Performance Analysis", "Benchmark actual run time, comparisons, and swaps across input sizes.", "06")
         ]
 
         for i, (title, desc, icon) in enumerate(features_info):
@@ -560,9 +621,14 @@ class LandingPage(tk.Frame):
             f_inner = tk.Frame(card.body, bg=COLOR_SURFACE_1, padx=16, pady=16)
             f_inner.pack(fill="both", expand=True)
 
-            # Icon badge
-            lbl_icon = tk.Label(f_inner, text=icon, bg=COLOR_SURFACE_2, fg=STATE_DEFAULT, font=FONT_TITLE_1, width=3, height=1)
-            lbl_icon.pack(anchor="w", pady=(0, 8))
+            lbl_index = tk.Label(
+                f_inner,
+                text=f"LAB  /  {icon}",
+                bg=COLOR_SURFACE_1,
+                fg=STATE_DEFAULT,
+                font=FONT_CAPTION_1
+            )
+            lbl_index.pack(anchor="w", pady=(0, 8))
 
             lbl_t = tk.Label(f_inner, text=title, bg=COLOR_SURFACE_1, fg=COLOR_TEXT_PRIMARY, font=FONT_TITLE_2)
             lbl_t.pack(anchor="w", pady=(0, 4))
@@ -576,50 +642,70 @@ class LandingPage(tk.Frame):
         sec.pack(fill="x", padx=SPACING_600, pady=(0, SPACING_600))
         self.section_anchors["why"] = sec
 
-        lbl_title = tk.Label(
-            sec,
-            text="Why AlgoScope?",
+        story = tk.Frame(sec, bg=COLOR_BLACK)
+        story.pack(fill="x")
+        story.columnconfigure(0, weight=1)
+        story.columnconfigure(1, weight=1)
+
+        left = tk.Frame(story, bg=COLOR_BLACK)
+        left.grid(row=0, column=0, sticky="nw", padx=(0, SPACING_600))
+
+        tk.Label(
+            left,
+            text="The difference is\nin the steps.",
             bg=COLOR_BLACK,
             fg=COLOR_TEXT_PRIMARY,
-            font=FONT_HEADING_3
-        )
-        lbl_title.pack(anchor="w", pady=(0, 6))
-
-        lbl_sub = tk.Label(
-            sec,
-            text="Built by educators for students to bridge the gap between abstract syntax and concrete memory mutations.",
+            font=FONT_HEADING_2,
+            justify="left"
+        ).pack(anchor="w", pady=(0, SPACING_200))
+        tk.Label(
+            left,
+            text="A visualizer should show the work, not just the answer. AlgoScope keeps each transition tied to the algorithm that produced it.",
             bg=COLOR_BLACK,
             fg=COLOR_TEXT_SECONDARY,
-            font=FONT_TITLE_4
-        )
-        lbl_sub.pack(anchor="w", pady=(0, SPACING_400))
+            font=FONT_TITLE_3,
+            wraplength=400,
+            justify="left"
+        ).pack(anchor="w")
 
-        grid = tk.Frame(sec, bg=COLOR_BLACK)
-        grid.pack(fill="x")
-        grid.columnconfigure(0, weight=1)
-        grid.columnconfigure(1, weight=1)
-
-        benefits = [
-            ("Understand algorithms visually", "Transform dry mathematical descriptions into tangible, color-coded visual representations that clarify internal logic instantly."),
-            ("Follow execution step by step", "Pause, resume, step forward, and step backward in time with full timeline scrubbing and active pseudocode synchronization."),
-            ("Compare algorithm performance", "Run real non-simulated benchmarks to witness firsthand how O(n log n) scales dramatically better than O(n²) under actual workloads."),
-            ("Explore multiple DSA concepts in one place", "From memory-constrained circular queues to multi-way AVL balancing and network MSTs, everything is housed in one cohesive system.")
+        principles = [
+            ("01", "Real state, not a replay", "Every frame comes from the actual algorithm execution."),
+            ("02", "Move through time", "Pause, step forward or back, and inspect the active pseudocode."),
+            ("03", "Measure what matters", "Compare runtime and operation counts from real benchmarks."),
         ]
+        list_frame = tk.Frame(story, bg=COLOR_BLACK)
+        list_frame.grid(row=0, column=1, sticky="nsew")
+        for index, (number, title, description) in enumerate(principles):
+            row = tk.Frame(list_frame, bg=COLOR_BLACK)
+            row.pack(fill="x", pady=(0, SPACING_300 if index < len(principles) - 1 else 0))
 
-        for i, (title, desc) in enumerate(benefits):
-            r = i // 2
-            c = i % 2
-            card = CardFrame(grid, bg=COLOR_SURFACE_1)
-            card.grid(row=r, column=c, padx=6, pady=6, sticky="nsew")
-
-            b_inner = tk.Frame(card.body, bg=COLOR_SURFACE_1, padx=18, pady=16)
-            b_inner.pack(fill="both", expand=True)
-
-            lbl_t = tk.Label(b_inner, text=f"✔  {title}", bg=COLOR_SURFACE_1, fg=COLOR_TEXT_PRIMARY, font=FONT_TITLE_2)
-            lbl_t.pack(anchor="w", pady=(0, 4))
-
-            lbl_d = tk.Label(b_inner, text=desc, bg=COLOR_SURFACE_1, fg=COLOR_TEXT_SECONDARY, font=FONT_BODY_6, wraplength=420, justify="left")
-            lbl_d.pack(anchor="w")
+            tk.Label(
+                row,
+                text=number,
+                bg=COLOR_BLACK,
+                fg=STATE_DEFAULT,
+                font=FONT_CODE_SM,
+                width=4,
+                anchor="w"
+            ).pack(side="left", anchor="n")
+            copy = tk.Frame(row, bg=COLOR_BLACK)
+            copy.pack(side="left", fill="x", expand=True)
+            tk.Label(
+                copy,
+                text=title,
+                bg=COLOR_BLACK,
+                fg=COLOR_TEXT_PRIMARY,
+                font=FONT_TITLE_2
+            ).pack(anchor="w")
+            tk.Label(
+                copy,
+                text=description,
+                bg=COLOR_BLACK,
+                fg=COLOR_TEXT_SECONDARY,
+                font=FONT_BODY_6,
+                wraplength=410,
+                justify="left"
+            ).pack(anchor="w", pady=(4, 0))
 
     # ------------------ 7. FINAL CALL TO ACTION ------------------
     def _build_final_cta(self):
@@ -634,7 +720,7 @@ class LandingPage(tk.Frame):
 
         lbl_head = tk.Label(
             inner,
-            text="Ready to Explore Algorithms?",
+            text="Follow the next step.",
             bg=COLOR_SURFACE_1,
             fg=COLOR_TEXT_PRIMARY,
             font=FONT_HEADING_2
@@ -643,7 +729,7 @@ class LandingPage(tk.Frame):
 
         lbl_sub = tk.Label(
             inner,
-            text="Start visualizing algorithms and understand how they work internally.",
+            text="Choose a lab and see how the state changes as the algorithm runs.",
             bg=COLOR_SURFACE_1,
             fg=COLOR_TEXT_SECONDARY,
             font=FONT_TITLE_2
@@ -683,4 +769,3 @@ class LandingPage(tk.Frame):
             font=FONT_CAPTION_1
         )
         lbl_ver.pack(side="right")
-
