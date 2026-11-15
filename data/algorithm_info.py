@@ -219,29 +219,6 @@ ALGORITHM_DATA: Dict[str, AlgorithmInfo] = {
             "Medium-sized sorted arrays where binary search branch misses are costly"
         ]
     ),
-    "Interpolation Search": AlgorithmInfo(
-        name="Interpolation Search",
-        category="Searching",
-        description="An improvement over binary search for uniformly distributed sorted values. Estimates position using formula: pos = low + [(target - arr[low]) * (high - low)] // (arr[high] - arr[low]).",
-        best_time="O(1)",
-        avg_time="O(log(log n))",
-        worst_time="O(n)",
-        space_complexity="O(1)",
-        pseudocode=[
-            "low = 0; high = n - 1",
-            "while low <= high and target >= arr[low] and target <= arr[high]:",
-            "    pos = low + ((target - arr[low]) * (high - low)) // (arr[high] - arr[low])",
-            "    if arr[pos] == target: return pos",
-            "    if arr[pos] < target: low = pos + 1",
-            "    else: high = pos - 1",
-            "return -1"
-        ],
-        use_cases=[
-            "Searching telephone directories or uniformly distributed dictionaries",
-            "Timestamp searches in continuous uniform time series",
-            "In-memory tabular lookups with roughly uniform keys"
-        ]
-    ),
 
     # ------------------ GRAPHS ------------------
     "Breadth First Search (BFS)": AlgorithmInfo(

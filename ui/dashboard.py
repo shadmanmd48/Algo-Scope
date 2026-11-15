@@ -1,29 +1,31 @@
 """
 AlgoScope Main Dashboard
 Interactive dashboard displaying module cards, learning stats, and quick launches.
+Strictly conforms to the ProFinance light design system and reference image 2.
 """
 
 import tkinter as tk
-from typing import Callable
+from typing import Callable, Dict, List
 from core.theme import (
-    COLOR_BLACK, COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
-    COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_TEXT_MUTED,
+    COLOR_PAGE_BG, COLOR_CONTAINER, COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
+    COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_TEXT_MUTED, COLOR_LIME,
     STATE_DEFAULT, STATE_SORTED, STATE_COMPARE, STATE_SECONDARY,
-    FONT_HEADING_3, FONT_HEADING_4, FONT_TITLE_2, FONT_TITLE_4, FONT_BODY_6,
-    FONT_BUTTON_SM, FONT_CAPTION_1, SPACING_100, SPACING_200, SPACING_300
+    FONT_HEADING_2, FONT_HEADING_3, FONT_HEADING_4, FONT_TITLE_1, FONT_TITLE_2, FONT_TITLE_4,
+    FONT_BODY_3, FONT_BODY_6, FONT_BUTTON_SM, FONT_CAPTION_1,
+    SPACING_100, SPACING_200, SPACING_300, SPACING_400
 )
-from ui.components import CardFrame, StyledButton, Badge
+from ui.components import CardFrame, RoundedCardFrame, StyledButton, Badge
 
 class DashboardView(tk.Frame):
     """The central hub providing quick access to all 6 DSA modules."""
     def __init__(self, master, on_open_module: Callable[[str], None], **kwargs):
-        super().__init__(master, bg=COLOR_BLACK, **kwargs)
+        super().__init__(master, bg=COLOR_PAGE_BG, **kwargs)
         self.on_open_module = on_open_module
 
         # Scrollable container for dashboard
-        self.canvas = tk.Canvas(self, bg=COLOR_BLACK, highlightthickness=0)
+        self.canvas = tk.Canvas(self, bg=COLOR_PAGE_BG, highlightthickness=0)
         self.scrollbar = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
-        self.scroll_content = tk.Frame(self.canvas, bg=COLOR_BLACK)
+        self.scroll_content = tk.Frame(self.canvas, bg=COLOR_PAGE_BG)
 
         self.scroll_content.bind(
             "<Configure>",
@@ -39,7 +41,6 @@ class DashboardView(tk.Frame):
             "<Configure>",
             lambda e: self.canvas.itemconfig(self.window_id, width=e.width)
         )
-        # Bind mouse wheel
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
 
         self._build_dashboard_content()
@@ -49,169 +50,205 @@ class DashboardView(tk.Frame):
             self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def _build_dashboard_content(self):
-        container = tk.Frame(self.scroll_content, bg=COLOR_BLACK)
-        container.pack(fill="both", expand=True, padx=SPACING_300, pady=SPACING_300)
+        container = tk.Frame(self.scroll_content, bg=COLOR_PAGE_BG)
+        container.pack(fill="both", expand=True, padx=SPACING_400, pady=SPACING_300)
 
-        # 1. Welcome Header Banner
-        banner_card = CardFrame(container, bg=COLOR_SURFACE_1)
-        banner_card.pack(fill="x", pady=(0, SPACING_300))
-
-        b_body = banner_card.body
-        b_inner = tk.Frame(b_body, bg=COLOR_SURFACE_1, padx=SPACING_300, pady=SPACING_200)
-        b_inner.pack(fill="both")
+        # 1. Section Header (Matching Reference Image 2)
+        header_f = tk.Frame(container, bg=COLOR_PAGE_BG)
+        header_f.pack(fill="x", pady=(SPACING_200, SPACING_300))
 
         lbl_head = tk.Label(
-            b_inner,
-            text="Interactive DSA & Algorithm Visualizer",
-            bg=COLOR_SURFACE_1,
+            header_f,
+            text="Get the Most Out of Algorithms",
+            bg=COLOR_PAGE_BG,
             fg=COLOR_TEXT_PRIMARY,
             font=FONT_HEADING_3
         )
         lbl_head.pack(anchor="w")
 
         lbl_sub = tk.Label(
-            b_inner,
-            text="Select any core module below to explore step-by-step visualizations driven by real algorithm execution, interactive controls, and performance metrics.",
-            bg=COLOR_SURFACE_1,
+            header_f,
+            text="Six comprehensive visual laboratories designed to build deep algorithmic intuition through genuine execution.",
+            bg=COLOR_PAGE_BG,
             fg=COLOR_TEXT_SECONDARY,
             font=FONT_BODY_6,
-            wraplength=800,
+            wraplength=900,
             justify="left"
         )
-        lbl_sub.pack(anchor="w", pady=(6, 0))
+        lbl_sub.pack(anchor="w", pady=(8, 0))
 
-        # Quick stats pill strip
-        stats_strip = tk.Frame(b_inner, bg=COLOR_SURFACE_1)
-        stats_strip.pack(anchor="w", pady=(12, 0))
-
-        def add_pill(text, bg_col):
-            b = Badge(stats_strip, text=text, bg_color=bg_col)
-            b.pack(side="left", padx=(0, 8))
-
-        add_pill("6 Visualizer Modules", COLOR_SURFACE_2)
-        add_pill("24 Interactive Algorithms", COLOR_SURFACE_2)
-        add_pill("100% Real Time Execution", COLOR_SURFACE_2)
-        add_pill("Zero External Dependencies", COLOR_SURFACE_2)
-
-        # 2. Modules Grid (2 columns x 3 rows)
-        grid_f = tk.Frame(container, bg=COLOR_BLACK)
+        # 2. Modules Grid (2 or 3 columns matching reference cards)
+        grid_f = tk.Frame(container, bg=COLOR_PAGE_BG)
         grid_f.pack(fill="both", expand=True)
 
         grid_f.columnconfigure(0, weight=1)
         grid_f.columnconfigure(1, weight=1)
+        grid_f.columnconfigure(2, weight=1)
 
         modules_data = [
             {
                 "id": "Sorting",
+                "category": "01 / ARRAYS",
                 "title": "Sorting Visualizer",
-                "badge": "6 Algorithms",
-                "desc": "Real-time bar visualization highlighting comparisons, swaps, and sorted subarrays with custom input and speed control.",
-                "tags": ["Bubble", "Selection", "Insertion", "Merge", "Quick", "Heap"],
+                "desc": "Step-by-step bar animations for Bubble, Selection, Insertion, Merge, Quick, and Heap Sort with live comparison and swap telemetry.",
                 "color": "#3B82F6"
             },
             {
-                "id": "Searching",
-                "title": "Searching Visualizer",
-                "badge": "4 Algorithms",
-                "desc": "Sequential and interval search visualizers with target indexing, interval bounds, and array ordering enforcement.",
-                "tags": ["Linear", "Binary", "Jump", "Interpolation"],
-                "color": "#10B981"
-            },
-            {
                 "id": "Graphs",
+                "category": "02 / NETWORKS",
                 "title": "Graph Visualizer",
-                "badge": "6 Algorithms",
-                "desc": "Interactive canvas where you can create nodes and weighted edges, drag elements, and run shortest path & MST algorithms.",
-                "tags": ["BFS", "DFS", "Dijkstra", "A*", "Prim MST", "Kruskal MST"],
+                "desc": "Interactive topology builder. Execute BFS, DFS, Dijkstra, A*, and Prim's & Kruskal's Minimum Spanning Trees in real time.",
                 "color": "#8B5CF6"
             },
             {
+                "id": "Searching",
+                "category": "03 / SEARCH",
+                "title": "Searching Visualizer",
+                "desc": "Boundary and probe tracking across Linear, Binary, and Jump search algorithms on sorted and unsorted sets.",
+                "color": "#10B981"
+            },
+            {
                 "id": "Trees",
+                "category": "04 / HIERARCHY",
                 "title": "Tree Visualizer",
-                "badge": "BST & AVL",
-                "desc": "Dynamic binary tree canvas with balance factor calculations, live AVL rotations (LL, RR, LR, RL), and 4 traversal modes.",
-                "tags": ["BST Insert/Delete", "AVL Rotations", "Inorder", "Preorder", "Level Order"],
+                "desc": "Dynamic BST and self-balancing AVL trees. Follow balance factor checks, LL/RR/LR/RL rotations, and complete tree traversals.",
                 "color": "#EC4899"
             },
             {
                 "id": "Data Structures",
+                "category": "05 / MEMORY",
                 "title": "Data Structures",
-                "badge": "5 Core Structures",
-                "desc": "Step-by-step memory animation for stacks, queues, ring buffers, linked lists, and hash table collision resolution.",
-                "tags": ["Stack", "Queue", "Circular Queue", "Linked List", "Hash Table"],
+                "desc": "Live memory layout for Stacks (LIFO), Queues (FIFO), Circular Buffers, Linked Lists, and Hash Table collision resolution.",
                 "color": "#06B6D4"
             },
             {
                 "id": "Performance",
+                "category": "06 / BENCHMARKS",
                 "title": "Performance Analyzer",
-                "badge": "Live Benchmarks",
-                "desc": "Compare execution times, comparisons, and swaps across multiple sorting algorithms on arbitrary array sizes using live charts.",
-                "tags": ["Wall-clock Runtime (ms)", "Real Operations Count", "Comparative Canvas Charts"],
+                "desc": "Profile actual CPU wall-clock runtime in milliseconds with time.perf_counter() and compare operation counts against Big-O bounds.",
                 "color": "#F59E0B"
             }
         ]
 
         for i, mod in enumerate(modules_data):
-            row = i // 2
-            col = i % 2
+            row = i // 3
+            col = i % 3
             card = self._create_module_card(grid_f, mod)
             card.grid(row=row, column=col, padx=8, pady=8, sticky="nsew")
 
-    def _create_module_card(self, parent, mod: dict) -> tk.Frame:
-        card = CardFrame(parent, bg=COLOR_SURFACE_1)
+        # 3. Bottom Feature Highlights (Matching "The difference is in the execution")
+        bottom_f = tk.Frame(container, bg=COLOR_PAGE_BG)
+        bottom_f.pack(fill="x", pady=(SPACING_400, SPACING_200))
+
+        feat_card = RoundedCardFrame(bottom_f, bg=COLOR_SURFACE_1, radius=14, show_accent=True)
+        feat_card.pack(fill="x")
+
+        feat_inner = tk.Frame(feat_card.body, bg=COLOR_SURFACE_1, padx=SPACING_300, pady=SPACING_300)
+        feat_inner.pack(fill="both")
+
+        feat_inner.columnconfigure(0, weight=1)
+        feat_inner.columnconfigure(1, weight=2)
+
+        left_side = tk.Frame(feat_inner, bg=COLOR_SURFACE_1)
+        left_side.grid(row=0, column=0, sticky="nw", padx=(0, SPACING_300))
+
+        lbl_feat_title = tk.Label(
+            left_side,
+            text="The difference is in\nthe execution.",
+            bg=COLOR_SURFACE_1,
+            fg=COLOR_TEXT_PRIMARY,
+            font=FONT_HEADING_4,
+            justify="left"
+        )
+        lbl_feat_title.pack(anchor="w")
+
+        lbl_feat_desc = tk.Label(
+            left_side,
+            text="Designed from the ground up to make algorithms intuitive, beautiful, and interactive.",
+            bg=COLOR_SURFACE_1,
+            fg=COLOR_TEXT_SECONDARY,
+            font=FONT_BODY_6,
+            wraplength=280,
+            justify="left"
+        )
+        lbl_feat_desc.pack(anchor="w", pady=(8, 0))
+
+        right_side = tk.Frame(feat_inner, bg=COLOR_SURFACE_1)
+        right_side.grid(row=0, column=1, sticky="nsew")
+
+        points = [
+            ("01  100% Real State Snapshots", "No prewritten animations or faked delays. Every frame comes directly from genuine algorithmic execution."),
+            ("02  High-DPI Per-Monitor V2 Crispness", "Subpixel-accurate rendering on modern 4K, 1440p, and multi-monitor setups at 100%, 125%, 150%, and 200%."),
+            ("03  Interactive Micro-Laboratories", "Add custom nodes, drag graph vertices, type arbitrary arrays, and watch self-balancing AVL rotations.")
+        ]
+
+        for num_title, body_desc in points:
+            item_f = tk.Frame(right_side, bg=COLOR_SURFACE_1)
+            item_f.pack(fill="x", pady=(0, 12))
+
+            lbl_t = tk.Label(item_f, text=num_title, bg=COLOR_SURFACE_1, fg=COLOR_TEXT_PRIMARY, font=FONT_TITLE_4)
+            lbl_t.pack(anchor="w")
+
+            lbl_b = tk.Label(item_f, text=body_desc, bg=COLOR_SURFACE_1, fg=COLOR_TEXT_SECONDARY, font=FONT_BODY_6, wraplength=480, justify="left")
+            lbl_b.pack(anchor="w", pady=(2, 0))
+
+    def _create_module_card(self, parent, mod: dict) -> tk.Widget:
+        card = RoundedCardFrame(parent, bg=COLOR_SURFACE_1, radius=12, show_accent=True, height=230)
         p = card.body
 
-        inner = tk.Frame(p, bg=COLOR_SURFACE_1, padx=SPACING_200, pady=SPACING_200)
+        inner = tk.Frame(p, bg=COLOR_SURFACE_1, padx=SPACING_100, pady=SPACING_100)
         inner.pack(fill="both", expand=True)
 
-        # Header Row
-        top_row = tk.Frame(inner, bg=COLOR_SURFACE_1)
-        top_row.pack(fill="x", pady=(0, 6))
+        # Category Tag Row with subtle electric lime dot indicator
+        cat_row = tk.Frame(inner, bg=COLOR_SURFACE_1)
+        cat_row.pack(anchor="w", pady=(0, 6))
 
+        dot = tk.Canvas(cat_row, width=8, height=8, bg=COLOR_SURFACE_1, highlightthickness=0)
+        dot.pack(side="left", padx=(0, 6))
+        dot.create_oval(1, 1, 7, 7, fill=COLOR_LIME, outline="")
+
+        lbl_cat = tk.Label(
+            cat_row,
+            text=mod["category"],
+            bg=COLOR_SURFACE_1,
+            fg=COLOR_TEXT_SECONDARY,
+            font=FONT_CAPTION_1
+        )
+        lbl_cat.pack(side="left")
+
+        # Title
         lbl_title = tk.Label(
-            top_row,
+            inner,
             text=mod["title"],
             bg=COLOR_SURFACE_1,
             fg=COLOR_TEXT_PRIMARY,
-            font=FONT_TITLE_2
+            font=FONT_TITLE_1
         )
-        lbl_title.pack(side="left")
+        lbl_title.pack(anchor="w", pady=(0, 6))
 
-        badge = Badge(top_row, text=mod["badge"], bg_color=COLOR_SURFACE_2)
-        badge.pack(side="right")
-
-        # Description
+        # Description (Naturally flows across lines without truncation)
         lbl_desc = tk.Label(
             inner,
             text=mod["desc"],
             bg=COLOR_SURFACE_1,
             fg=COLOR_TEXT_SECONDARY,
             font=FONT_BODY_6,
-            wraplength=380,
+            wraplength=280,
             justify="left"
         )
-        lbl_desc.pack(anchor="w", pady=(0, 10))
+        lbl_desc.pack(anchor="w", pady=(0, 16))
 
-        # Tag Pills
-        tag_f = tk.Frame(inner, bg=COLOR_SURFACE_1)
-        tag_f.pack(anchor="w", pady=(0, 14))
+        # Dynamically adjust wraplength to fill card width on resize
+        def _on_card_resize(e):
+            if e.width > 50:
+                lbl_desc.config(wraplength=max(220, e.width - 24))
 
-        for t in mod["tags"]:
-            lbl_t = tk.Label(
-                tag_f,
-                text=t,
-                bg=COLOR_SURFACE_2,
-                fg=COLOR_TEXT_MUTED,
-                font=FONT_CAPTION_1,
-                padx=6,
-                pady=2
-            )
-            lbl_t.pack(side="left", padx=(0, 4), pady=(0, 4))
+        inner.bind("<Configure>", _on_card_resize)
 
-        # Launch Button
+        # Explore Button (Rounded Pill Button)
         btn_launch = StyledButton(
             inner,
-            text="Launch Visualizer →",
+            text="Explore Laboratory →",
             variant="secondary",
             size="sm",
             command=lambda m_id=mod["id"]: self.on_open_module(m_id)
@@ -219,4 +256,3 @@ class DashboardView(tk.Frame):
         btn_launch.pack(anchor="w")
 
         return card
-

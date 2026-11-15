@@ -8,22 +8,32 @@ from core.dpi import setup_high_dpi, configure_root_dpi, get_dpi_scale_factor
 # Initialize Windows High-DPI awareness at the earliest possible import
 setup_high_dpi()
 
-# B4. Dark Mode Background Colors (strictly these values)
-COLOR_BLACK       = "#000000"  # Base background
-COLOR_SURFACE_1   = "#181818"  # Card / container surface
-COLOR_SURFACE_2   = "#1F1F1F"  # Elevated surface / inputs / navbar
-COLOR_BORDER      = "#272727"  # Complete perimeter border
-COLOR_BORDER_HOT  = "#313131"  # Active border / hover border
-COLOR_WARM_DARK   = "#131209"  # Warm dark accent surface
+# Modern ProFinance Aesthetic Colors
+COLOR_PAGE_BG       = "#E8ECEF"   # Soft neutral light gray window backdrop
+COLOR_CONTAINER     = "#FFFFFF"   # Large white website container
+COLOR_SURFACE_1     = "#FFFFFF"   # Primary card / panel surface
+COLOR_SURFACE_2     = "#F4F4F5"   # Elevated light surface / chip / search bar
+COLOR_SURFACE_3     = "#E4E4E7"   # Clean 1px border / divider
+COLOR_SURFACE_DARK  = "#18181B"   # High-contrast dark container for visualizers / pseudocode
+COLOR_SURFACE_DARK_2= "#111115"   # Dark device card backdrop
+COLOR_BORDER        = "#E4E4E7"   # Clean 1px perimeter border
+COLOR_BORDER_HOT    = "#000000"   # Active / hover border
+COLOR_LIME          = "#DFFF35"   # Vibrant electric lime / chartreuse accent
+COLOR_LIME_HOVER    = "#D2F52C"   # Subtle hover lime
+COLOR_INK_BLACK     = "#000000"   # Bold black typography & primary CTA buttons
+COLOR_BLACK         = "#000000"   # Compatibility black
+COLOR_WARM_DARK     = "#18181B"   # Dark card accent
 
 # Foreground & Text Colors
-COLOR_TEXT_PRIMARY   = "#FFFFFF"  # Primary reading text
-COLOR_TEXT_SECONDARY = "#9B9B9B"  # Secondary copy / subheadings
-COLOR_TEXT_MUTED     = "#666666"  # Captions / metadata / disabled text
+COLOR_TEXT_PRIMARY   = "#000000"   # Primary reading text (Ink Black)
+COLOR_TEXT_SECONDARY = "#52525B"   # Secondary copy / subheadings
+COLOR_TEXT_MUTED     = "#A1A1AA"   # Captions / metadata / disabled text
+COLOR_TEXT_ON_DARK   = "#FFFFFF"   # Primary white text on dark cards & buttons
+COLOR_TEXT_ON_DARK_MUTED = "#A1A1AA" # Secondary text on dark cards
 
 # Hero Text Gradient
-HERO_GRADIENT_START = "#FFFFFF"
-HERO_GRADIENT_END   = "#9B9B9B"
+HERO_GRADIENT_START = "#000000"
+HERO_GRADIENT_END   = "#52525B"
 
 # Algorithmic State Colors (High contrast against dark flat surfaces)
 STATE_DEFAULT   = "#3B82F6"  # Sky Blue - idle elements

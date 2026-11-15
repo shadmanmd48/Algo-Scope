@@ -1,20 +1,21 @@
 """
 AlgoScope Base Visualizer Framework
 Standard container providing unified control bar, pseudocode viewer, complexity drawer, and metrics.
+Adheres strictly to the modern ProFinance aesthetic with rounded pill controls and high-contrast code drawer.
 """
 
 import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Dict, List, Optional
 from core.theme import (
-    COLOR_BLACK, COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
-    COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_TEXT_MUTED,
+    COLOR_PAGE_BG, COLOR_CONTAINER, COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
+    COLOR_SURFACE_DARK, COLOR_LIME, COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_TEXT_MUTED,
     STATE_DEFAULT, STATE_COMPARE, STATE_ACTIVE, STATE_SORTED,
     FONT_HEADING_4, FONT_HEADING_6, FONT_TITLE_2, FONT_TITLE_3, FONT_TITLE_4,
     FONT_BODY_3, FONT_BODY_6, FONT_CODE_SM, FONT_BUTTON_SM, FONT_CAPTION_1,
     SPACING_50, SPACING_75, SPACING_100, SPACING_200, SPACING_300, BTN_PAD_X, BTN_PAD_Y
 )
-from ui.components import StyledButton, CardFrame, Badge, LabeledEntry, SlidingPillNav
+from ui.components import StyledButton, CardFrame, RoundedCardFrame, Badge, LabeledEntry, SlidingPillNav
 from data.algorithm_info import ALGORITHM_DATA, AlgorithmInfo
 
 class BaseVisualizerView(tk.Frame):
@@ -29,7 +30,7 @@ class BaseVisualizerView(tk.Frame):
         on_back_to_dashboard: Callable[[], None],
         **kwargs
     ):
-        super().__init__(master, bg=COLOR_BLACK, **kwargs)
+        super().__init__(master, bg=COLOR_PAGE_BG, **kwargs)
         self.title_str = title
         self.category = category
         self.algorithms = algorithms
@@ -55,7 +56,7 @@ class BaseVisualizerView(tk.Frame):
         left_box = tk.Frame(self.header, bg=COLOR_SURFACE_1)
         left_box.pack(side="left", padx=SPACING_200, pady=SPACING_75)
 
-        # Back to Dashboard button
+        # Back to Dashboard button (rounded pill)
         self.btn_back = StyledButton(
             left_box,
             text="← Dashboard",
@@ -80,18 +81,23 @@ class BaseVisualizerView(tk.Frame):
         border_top.pack(fill="x", side="top")
 
         # Dedicated Horizontal Algorithm Selector Bar directly below the header
-        self.algo_strip = tk.Frame(self, bg=COLOR_SURFACE_1, height=48)
+        self.algo_strip = tk.Frame(self, bg=COLOR_SURFACE_1, height=56)
         self.algo_strip.pack(fill="x", side="top")
 
         algo_inner = tk.Frame(self.algo_strip, bg=COLOR_SURFACE_1)
-        algo_inner.pack(side="left", padx=SPACING_200, pady=(6, 6))
+        algo_inner.pack(anchor="center", pady=(8, 8))
+
+        # Electric lime theme indicator dot
+        dot = tk.Canvas(algo_inner, width=8, height=8, bg=COLOR_SURFACE_1, highlightthickness=0)
+        dot.pack(side="left", padx=(0, 6))
+        dot.create_oval(1, 1, 7, 7, fill=COLOR_LIME, outline="")
 
         lbl_algo = tk.Label(
             algo_inner,
             text="Algorithm:",
             bg=COLOR_SURFACE_1,
-            fg=COLOR_TEXT_MUTED,
-            font=FONT_CAPTION_1
+            fg=COLOR_TEXT_PRIMARY,
+            font=FONT_TITLE_4
         )
         lbl_algo.pack(side="left", padx=(0, SPACING_100))
 
@@ -104,10 +110,15 @@ class BaseVisualizerView(tk.Frame):
             items=self.algorithms,
             initial_index=initial_idx,
             on_select=lambda idx, name: self.select_algorithm(name),
-            height=36,
-            padding_x=14,
-            font_size=9,
-            bg_parent=COLOR_SURFACE_1
+            height=42,
+            padding_x=20,
+            font_size=10,
+            bg_parent=COLOR_SURFACE_1,
+            bg_container="#F8FDE8",
+            border_color=COLOR_LIME,
+            pill_border_color=COLOR_LIME,
+            text_inactive_color="#3F3F46",
+            text_hover_color="#000000"
         )
         self.algo_nav.pack(side="left")
 
@@ -125,17 +136,16 @@ class BaseVisualizerView(tk.Frame):
 
     def _build_main_content(self):
         """Split view: Left Canvas area + Right Information Drawer."""
-        self.content_frame = tk.Frame(self, bg=COLOR_BLACK)
-        self.content_frame.pack(fill="both", expand=True, padx=SPACING_100, pady=SPACING_100)
+        self.content_frame = tk.Frame(self, bg=COLOR_PAGE_BG)
+        self.content_frame.pack(fill="both", expand=True, padx=SPACING_300, pady=SPACING_200)
 
         # Left Canvas Container
-        self.canvas_card = CardFrame(self.content_frame, bg=COLOR_SURFACE_1)
-        self.canvas_card.pack(side="left", fill="both", expand=True, padx=(0, SPACING_100))
+        self.canvas_card = RoundedCardFrame(self.content_frame, bg=COLOR_SURFACE_1, radius=14, show_accent=True)
+        self.canvas_card.pack(side="left", fill="both", expand=True, padx=(0, SPACING_200))
 
         # Right Information Drawer
-        self.info_card = CardFrame(self.content_frame, bg=COLOR_SURFACE_1, width=340)
+        self.info_card = RoundedCardFrame(self.content_frame, bg=COLOR_SURFACE_1, radius=14, show_accent=False, width=340)
         self.info_card.pack(side="right", fill="y", expand=False)
-        self.info_card.pack_propagate(False)
 
         self._build_info_drawer(self.info_card.body)
 
@@ -178,7 +188,7 @@ class BaseVisualizerView(tk.Frame):
         # Divider line
         tk.Frame(parent, bg=COLOR_BORDER, height=1).pack(fill="x", pady=SPACING_75)
 
-        # Section 2: Pseudocode Viewer
+        # Section 2: Pseudocode Viewer (Modern High-Contrast Dark Card)
         lbl_pseudo_title = tk.Label(
             parent,
             text="Pseudocode Execution",
@@ -188,7 +198,7 @@ class BaseVisualizerView(tk.Frame):
         )
         lbl_pseudo_title.pack(anchor="w", padx=SPACING_100, pady=(4, 4))
 
-        self.pseudo_container = tk.Frame(parent, bg=COLOR_SURFACE_2, padx=6, pady=6)
+        self.pseudo_container = tk.Frame(parent, bg=COLOR_SURFACE_DARK, padx=8, pady=8)
         self.pseudo_container.pack(fill="x", padx=SPACING_100, pady=2)
 
         # Section 3: Explanation & Use Cases
@@ -213,26 +223,6 @@ class BaseVisualizerView(tk.Frame):
             justify="left"
         )
         self.lbl_description.pack(anchor="w", padx=SPACING_100, pady=(0, 6))
-
-        lbl_use_title = tk.Label(
-            parent,
-            text="Practical Use Cases",
-            bg=COLOR_SURFACE_1,
-            fg=COLOR_TEXT_PRIMARY,
-            font=FONT_TITLE_2
-        )
-        lbl_use_title.pack(anchor="w", padx=SPACING_100, pady=(4, 2))
-
-        self.lbl_use_cases = tk.Label(
-            parent,
-            text="",
-            bg=COLOR_SURFACE_1,
-            fg=COLOR_TEXT_SECONDARY,
-            font=FONT_BODY_6,
-            wraplength=310,
-            justify="left"
-        )
-        self.lbl_use_cases.pack(anchor="w", padx=SPACING_100)
 
     def _build_control_bar(self):
         """Unified playback and metrics control bar at bottom."""
@@ -271,7 +261,7 @@ class BaseVisualizerView(tk.Frame):
         self.lbl_step_counter = tk.Label(self.metrics_bar, text="Step: 0", bg=COLOR_SURFACE_1, fg=COLOR_TEXT_SECONDARY, font=FONT_CAPTION_1)
         self.lbl_step_counter.pack(side="left")
 
-        # Right section: Speed Slider + Custom buttons slot
+        # Right section: Speed Slider
         right_f = tk.Frame(inner, bg=COLOR_SURFACE_1)
         right_f.pack(side="right")
 
@@ -294,21 +284,21 @@ class BaseVisualizerView(tk.Frame):
         self.speed_slider.set(50)
         self.speed_slider.pack(side="left", padx=(0, 16))
 
-        # Center section: Playback Buttons
+        # Center section: Rounded Pill Playback Buttons
         center_f = tk.Frame(inner, bg=COLOR_SURFACE_1)
         center_f.pack(side="right", padx=(0, 20))
 
         self.btn_reset = StyledButton(center_f, text="↺ Reset", size="sm", variant="secondary", command=self.on_reset_click)
-        self.btn_reset.pack(side="left", padx=2)
+        self.btn_reset.pack(side="left", padx=3)
 
         self.btn_prev = StyledButton(center_f, text="⏮ Step", size="sm", variant="secondary", command=self.on_prev_click)
-        self.btn_prev.pack(side="left", padx=2)
+        self.btn_prev.pack(side="left", padx=3)
 
         self.btn_play = StyledButton(center_f, text="▶ Play", size="sm", variant="accent", command=self.on_play_click)
-        self.btn_play.pack(side="left", padx=2)
+        self.btn_play.pack(side="left", padx=3)
 
         self.btn_next = StyledButton(center_f, text="Step ⏭", size="sm", variant="secondary", command=self.on_next_click)
-        self.btn_next.pack(side="left", padx=2)
+        self.btn_next.pack(side="left", padx=3)
 
     def set_algorithm_info(self, name: str):
         """Load and update pseudocode, complexities, and explanations from info database."""
@@ -321,9 +311,8 @@ class BaseVisualizerView(tk.Frame):
         self.lbl_worst.config(text=info.worst_time)
         self.lbl_space.config(text=info.space_complexity)
         self.lbl_description.config(text=info.description)
-        self.lbl_use_cases.config(text="\n".join([f"• {u}" for u in info.use_cases]))
 
-        # Rebuild pseudocode labels
+        # Rebuild pseudocode labels in dark code block
         for w in self.pseudo_container.winfo_children():
             w.destroy()
         self.pseudocode_labels.clear()
@@ -332,23 +321,23 @@ class BaseVisualizerView(tk.Frame):
             lbl = tk.Label(
                 self.pseudo_container,
                 text=line,
-                bg=COLOR_SURFACE_2,
-                fg=COLOR_TEXT_SECONDARY,
+                bg=COLOR_SURFACE_DARK,
+                fg="#A1A1AA",
                 font=FONT_CODE_SM,
                 anchor="w",
-                padx=4,
-                pady=1
+                padx=6,
+                pady=2
             )
             lbl.pack(fill="x")
             self.pseudocode_labels.append(lbl)
 
     def highlight_pseudocode_line(self, line_idx: int):
-        """Highlights the active pseudocode line, resetting all others."""
+        """Highlights the active pseudocode line with electric lime, resetting all others."""
         for i, lbl in enumerate(self.pseudocode_labels):
             if i == line_idx:
-                lbl.config(bg="#3B82F6", fg="#FFFFFF")
+                lbl.config(bg=COLOR_LIME, fg="#000000")
             else:
-                lbl.config(bg=COLOR_SURFACE_2, fg=COLOR_TEXT_SECONDARY)
+                lbl.config(bg=COLOR_SURFACE_DARK, fg="#A1A1AA")
 
     def update_status(self, message: str):
         self.lbl_status.config(text=message)
@@ -376,4 +365,3 @@ class BaseVisualizerView(tk.Frame):
 
     def _on_speed_change(self, val):
         pass
-

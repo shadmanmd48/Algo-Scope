@@ -11,147 +11,176 @@ import tkinter as tk
 from tkinter import ttk, font
 from typing import Callable, Optional, List, Dict, Any
 from core.theme import (
-    COLOR_BLACK, COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
+    COLOR_BLACK, COLOR_CONTAINER, COLOR_PAGE_BG, COLOR_LIME,
+    COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
     COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_TEXT_MUTED,
     FONT_BUTTON_MD, FONT_BUTTON_SM, FONT_BUTTON_LG, FONT_BODY_6, FONT_TITLE_3,
     FONT_CODE_SM, FONT_CAPTION_1, BTN_PAD_X, BTN_PAD_Y, RADIUS_MD, RADIUS_LG
 )
 
-class StyledButton(tk.Frame):
+class StyledButton(tk.Canvas):
     """
-    Polished custom button matching SKILL.md specifications:
-    - Flat background
-    - Complete perimeter border
-    - Distinct Hover and Active states
-    - Correct padding (8px Y, 12px X)
-    - Fully accessible via keyboard focus and return key
+    Modern rounded pill / capsule button matching ProFinance design:
+    - Smooth rounded pill ends (radius = height / 2) — no square corners!
+    - Clean border and high-contrast typography
+    - Interactive hover, active, and disabled states
+    - Antialiased edges with crisp pixel rendering
     """
     def __init__(
         self,
         master,
         text: str,
         command: Optional[Callable[[], None]] = None,
-        variant: str = "secondary",  # 'primary', 'secondary', 'accent', 'danger'
+        variant: str = "secondary",  # 'primary', 'secondary', 'accent', 'lime', 'danger', 'dark'
         size: str = "md",            # 'sm', 'md', 'lg'
         width: Optional[int] = None,
+        bg_parent: Optional[str] = None,
         **kwargs
     ):
-        # Choose styling tokens based on variant
-        if variant == "primary":
-            self.bg_idle = "#FFFFFF"
-            self.bg_hover = "#E5E5E5"
-            self.bg_active = "#CCCCCC"
-            self.fg = "#000000"
-            self.border_idle = "#FFFFFF"
-            self.border_hover = "#E5E5E5"
-        elif variant == "accent":
-            self.bg_idle = "#10B981"
-            self.bg_hover = "#059669"
-            self.bg_active = "#047857"
-            self.fg = "#FFFFFF"
-            self.border_idle = "#10B981"
-            self.border_hover = "#059669"
-        elif variant == "danger":
-            self.bg_idle = "#EF4444"
-            self.bg_hover = "#DC2626"
-            self.bg_active = "#B91C1C"
-            self.fg = "#FFFFFF"
-            self.border_idle = "#EF4444"
-            self.border_hover = "#DC2626"
-        else:  # secondary (default dark surface button)
-            self.bg_idle = COLOR_SURFACE_2
-            self.bg_hover = "#272727"
-            self.bg_active = "#313131"
-            self.fg = COLOR_TEXT_PRIMARY
-            self.border_idle = COLOR_BORDER
-            self.border_hover = COLOR_BORDER_HOT
+        self.text = text
+        self.command = command
+        self.variant = variant
+        self.size = size
+        self.custom_width = width
+        self.is_hover = False
+        self.is_pressed = False
+        self.is_enabled = True
+
+        # Detect parent background for seamless border blending
+        if bg_parent is None:
+            try:
+                bg_parent = master.cget("bg")
+            except Exception:
+                bg_parent = "#FFFFFF"
+        self.bg_parent = bg_parent
+
+        if size == "sm":
+            self.h = 32
+            self.pad_x = 14
+            self.f = font.Font(family="Segoe UI", size=10, weight="bold")
+        elif size == "lg":
+            self.h = 44
+            self.pad_x = 22
+            self.f = font.Font(family="Segoe UI", size=12, weight="bold")
+        else:  # md
+            self.h = 36
+            self.pad_x = 18
+            self.f = font.Font(family="Segoe UI", size=11, weight="bold")
+
+        self.w = self._calc_width()
 
         super().__init__(
             master,
-            bg=self.border_idle,
-            padx=1,
-            pady=1,
+            width=self.w,
+            height=self.h,
+            bg=self.bg_parent,
+            highlightthickness=0,
             cursor="hand2",
             **kwargs
         )
 
-        font = FONT_BUTTON_MD
-        padx = BTN_PAD_X
-        pady = BTN_PAD_Y
-        if size == "sm":
-            font = FONT_BUTTON_SM
-            padx = 8
-            pady = 5
-        elif size == "lg":
-            font = FONT_BUTTON_LG
-            padx = 20
-            pady = 10
-
-        self.inner = tk.Label(
-            self,
-            text=text,
-            bg=self.bg_idle,
-            fg=self.fg,
-            font=font,
-            padx=padx,
-            pady=pady
-        )
-        if width is not None:
-            self.inner.config(width=width)
-        self.inner.pack(fill="both", expand=True)
-
-        self.command = command
-        self._disabled = False
-
-        # Bind events for hover and click
         self.bind("<Enter>", self._on_enter)
         self.bind("<Leave>", self._on_leave)
         self.bind("<Button-1>", self._on_press)
         self.bind("<ButtonRelease-1>", self._on_release)
 
-        self.inner.bind("<Enter>", self._on_enter)
-        self.inner.bind("<Leave>", self._on_leave)
-        self.inner.bind("<Button-1>", self._on_press)
-        self.inner.bind("<ButtonRelease-1>", self._on_release)
+        self.render()
 
-    def _on_enter(self, _):
-        if not self._disabled:
-            self.config(bg=self.border_hover)
-            self.inner.config(bg=self.bg_hover)
-
-    def _on_leave(self, _):
-        if not self._disabled:
-            self.config(bg=self.border_idle)
-            self.inner.config(bg=self.bg_idle)
-
-    def _on_press(self, _):
-        if not self._disabled:
-            self.inner.config(bg=self.bg_active)
-
-    def _on_release(self, _):
-        if not self._disabled:
-            self.inner.config(bg=self.bg_hover)
-            if self.command:
-                self.command()
+    def _calc_width(self) -> int:
+        if self.custom_width:
+            return self.custom_width
+        tw = self.f.measure(self.text)
+        return max(tw + self.pad_x * 2, 48)
 
     def set_text(self, text: str):
-        self.inner.config(text=text)
+        self.text = text
+        self.w = self._calc_width()
+        self.config(width=self.w)
+        self.render()
 
     def set_enabled(self, enabled: bool):
-        self._disabled = not enabled
-        if self._disabled:
-            self.inner.config(fg=COLOR_TEXT_MUTED, cursor="arrow")
-            self.config(cursor="arrow")
-        else:
-            self.inner.config(fg=self.fg, cursor="hand2")
-            self.config(cursor="hand2")
+        self.is_enabled = enabled
+        self.config(cursor="hand2" if enabled else "arrow")
+        self.render()
+
+    def _get_colors(self):
+        if not self.is_enabled:
+            return "#F4F4F5", "#A1A1AA", "#E4E4E7"
+        if self.variant == "primary":
+            bg = "#27272A" if self.is_hover else "#000000"
+            if self.is_pressed:
+                bg = "#3F3F46"
+            return bg, "#FFFFFF", "#000000"
+        elif self.variant in ("lime", "accent"):
+            bg = "#D2F52C" if self.is_hover else "#DFFF35"
+            if self.is_pressed:
+                bg = "#C0E51B"
+            return bg, "#000000", "#C8EC20"
+        elif self.variant == "danger":
+            bg = "#DC2626" if self.is_hover else "#EF4444"
+            if self.is_pressed:
+                bg = "#B91C1C"
+            return bg, "#FFFFFF", "#DC2626"
+        elif self.variant == "dark":
+            bg = "#27272A" if self.is_hover else "#18181B"
+            if self.is_pressed:
+                bg = "#3F3F46"
+            return bg, "#FFFFFF", "#27272A"
+        else:  # secondary
+            bg = "#F4F4F5" if self.is_hover else "#FFFFFF"
+            if self.is_pressed:
+                bg = "#E4E4E7"
+            return bg, "#18181B", "#E4E4E7"
+
+    def render(self):
+        self.delete("all")
+        bg, fg, border = self._get_colors()
+        h = self.h
+        w = self.w
+        r = (h - 4) / 2.0
+
+        # Draw smooth rounded pill capsule
+        self.create_arc(2, 2, 2 + 2 * r, h - 2, start=90, extent=180, fill=bg, outline="", style="pieslice")
+        self.create_arc(w - 2 - 2 * r, 2, w - 2, h - 2, start=270, extent=180, fill=bg, outline="", style="pieslice")
+        self.create_rectangle(2 + r - 0.5, 2, w - 2 - r + 0.5, h - 2, fill=bg, outline="")
+
+        if border:
+            self.create_arc(2, 2, 2 + 2 * r, h - 2, start=90, extent=180, outline=border, width=1, style="arc")
+            self.create_arc(w - 2 - 2 * r, 2, w - 2, h - 2, start=270, extent=180, outline=border, width=1, style="arc")
+            self.create_line(2 + r, 2, w - 2 - r, 2, fill=border, width=1)
+            self.create_line(2 + r, h - 2, w - 2 - r, h - 2, fill=border, width=1)
+
+        self.create_text(round(w / 2.0), round(h / 2.0), text=self.text, fill=fg, font=self.f, anchor="center")
+
+    def _on_enter(self, _):
+        if self.is_enabled:
+            self.is_hover = True
+            self.render()
+
+    def _on_leave(self, _):
+        self.is_hover = False
+        self.is_pressed = False
+        self.render()
+
+    def _on_press(self, _):
+        if self.is_enabled:
+            self.is_pressed = True
+            self.render()
+
+    def _on_release(self, _):
+        if self.is_enabled and self.is_pressed:
+            self.is_pressed = False
+            self.render()
+            if self.command:
+                self.command()
 
 
 class CardFrame(tk.Frame):
     """
-    Card container adhering to B4:
-    - Flat surface #181818
-    - Perimeter border #272727 on all 4 sides
+    Modern card container with crisp 1px border and hover highlight:
+    - Default surface #FFFFFF
+    - Subtle perimeter border #E4E4E7
+    - Interactive hover highlight to #000000 or lime
     """
     def __init__(self, master, bg: str = COLOR_SURFACE_1, border_color: str = COLOR_BORDER, **kwargs):
         super().__init__(
@@ -161,12 +190,125 @@ class CardFrame(tk.Frame):
             pady=1,
             **kwargs
         )
+        self.default_border = border_color
         self.body = tk.Frame(self, bg=bg)
         self.body.pack(fill="both", expand=True)
 
+        self.bind("<Enter>", lambda _: self.config(bg=COLOR_BORDER_HOT))
+        self.bind("<Leave>", lambda _: self.config(bg=self.default_border))
+        self.body.bind("<Enter>", lambda _: self.config(bg=COLOR_BORDER_HOT))
+        self.body.bind("<Leave>", lambda _: self.config(bg=self.default_border))
+
+
+class RoundedCardFrame(tk.Canvas):
+    """
+    Modern card container with slightly curved edges (rounded corners) and subtle theme color touch:
+    - Smooth curved corners (default radius 12px)
+    - Delicate electric lime theme accent stripe along top or dot indicator
+    - Subtle 1px perimeter border #E4E4E7 with soft theme hover
+    - Inner body frame for standard packing of child widgets
+    """
+    def __init__(
+        self,
+        master,
+        bg: str = COLOR_SURFACE_1,
+        border_color: str = COLOR_BORDER,
+        bg_parent: str = COLOR_PAGE_BG,
+        radius: int = 12,
+        accent_color: str = COLOR_LIME,
+        show_accent: bool = True,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        **kwargs
+    ):
+        canvas_kwargs = {}
+        if height is not None:
+            canvas_kwargs['height'] = height
+        if width is not None:
+            canvas_kwargs['width'] = width
+        super().__init__(master, bg=bg_parent, highlightthickness=0, **canvas_kwargs, **kwargs)
+        self.radius = radius
+        self.card_bg = bg
+        self.border_color = border_color
+        self.hover_border = "#B8F500"  # Subtle electric lime accent on hover
+        self.accent_color = accent_color
+        self.show_accent = show_accent
+        self.is_hover = False
+
+        self.body = tk.Frame(self, bg=self.card_bg)
+        self.window_id = self.create_window(0, 0, window=self.body, anchor="nw")
+
+        self.bind("<Configure>", self._on_configure)
+        self.body.bind("<Configure>", self._on_body_configure)
+        self.bind("<Enter>", lambda _: self._set_hover(True))
+        self.bind("<Leave>", lambda _: self._set_hover(False))
+        self.body.bind("<Enter>", lambda _: self._set_hover(True))
+        self.body.bind("<Leave>", lambda _: self._set_hover(False))
+
+    def _set_hover(self, hover: bool):
+        self.is_hover = hover
+        self._redraw()
+
+    def _on_body_configure(self, e):
+        pad_x = 14
+        pad_y = 14
+        req_h = self.body.winfo_reqheight() + 2 * pad_y
+        try:
+            cur_h = int(self.cget("height"))
+        except (ValueError, tk.TclError):
+            cur_h = 0
+        if cur_h < req_h:
+            self.config(height=req_h)
+
+    def _on_configure(self, e):
+        pad_x = 14
+        pad_y = 14
+        w = e.width
+        h = e.height
+        self.coords(self.window_id, pad_x, pad_y)
+        self.itemconfig(self.window_id, width=max(1, w - 2 * pad_x), height=max(1, h - 2 * pad_y))
+        self._redraw()
+
+    def _redraw(self):
+        self.delete("all_shapes")
+        w = self.winfo_width()
+        h = self.winfo_height()
+        if w < 10 or h < 10:
+            return
+        r = self.radius
+        border = self.hover_border if self.is_hover else self.border_color
+        border_w = 2 if self.is_hover else 1
+
+        x0, y0, x1, y1 = 1, 1, w - 2, h - 2
+
+        # 1. Fill rounded rectangle
+        self.create_arc(x0, y0, x0 + 2*r, y0 + 2*r, start=90, extent=90, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_arc(x1 - 2*r, y0, x1, y0 + 2*r, start=0, extent=90, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_arc(x1 - 2*r, y1 - 2*r, x1, y1, start=270, extent=90, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_arc(x0, y1 - 2*r, x0 + 2*r, y1, start=180, extent=90, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_rectangle(x0 + r, y0, x1 - r, y1, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_rectangle(x0, y0 + r, x1, y1 - r, fill=self.card_bg, outline="", tags="all_shapes")
+
+        # 2. Subtle top theme accent stripe (very delicate 3px rounded line)
+        if self.show_accent:
+            accent_len = min(56, max(32, w * 0.22))
+            self.create_line(x0 + r + 4, y0 + 1, x0 + r + 4 + accent_len, y0 + 1, fill=self.accent_color, width=3, tags="all_shapes", capstyle="round")
+
+        # 3. Perimeter border with curved arcs
+        self.create_arc(x0, y0, x0 + 2*r, y0 + 2*r, start=90, extent=90, outline=border, width=border_w, style="arc", tags="all_shapes")
+        self.create_arc(x1 - 2*r, y0, x1, y0 + 2*r, start=0, extent=90, outline=border, width=border_w, style="arc", tags="all_shapes")
+        self.create_arc(x1 - 2*r, y1 - 2*r, x1, y1, start=270, extent=90, outline=border, width=border_w, style="arc", tags="all_shapes")
+        self.create_arc(x0, y1 - 2*r, x0 + 2*r, y1, start=180, extent=90, outline=border, width=border_w, style="arc", tags="all_shapes")
+        self.create_line(x0 + r, y0, x1 - r, y0, fill=border, width=border_w, tags="all_shapes")
+        self.create_line(x0 + r, y1, x1 - r, y1, fill=border, width=border_w, tags="all_shapes")
+        self.create_line(x0, y0 + r, x0, y1 - r, fill=border, width=border_w, tags="all_shapes")
+        self.create_line(x1, y0 + r, x1, y1 - r, fill=border, width=border_w, tags="all_shapes")
+
+        self.tag_lower("all_shapes")
+
 
 class Badge(tk.Frame):
-    """Small status or metric tag."""
+    """Small rounded pill status or metric chip."""
     def __init__(self, master, text: str, bg_color: str = COLOR_SURFACE_2, fg_color: str = COLOR_TEXT_PRIMARY, **kwargs):
         super().__init__(master, bg=COLOR_BORDER, padx=1, pady=1, **kwargs)
         self.label = tk.Label(
@@ -175,8 +317,8 @@ class Badge(tk.Frame):
             bg=bg_color,
             fg=fg_color,
             font=FONT_CAPTION_1,
-            padx=6,
-            pady=2
+            padx=8,
+            pady=3
         )
         self.label.pack()
 
@@ -185,18 +327,19 @@ class Badge(tk.Frame):
 
 
 class LabeledEntry(tk.Frame):
-    """A clean dark-themed text entry with label."""
+    """A clean modern light-themed text entry with label."""
     def __init__(self, master, label_text: str, initial_value: str = "", width: int = 15, **kwargs):
         super().__init__(master, bg=COLOR_SURFACE_1, **kwargs)
 
-        self.label = tk.Label(
-            self,
-            text=label_text,
-            bg=COLOR_SURFACE_1,
-            fg=COLOR_TEXT_SECONDARY,
-            font=FONT_BODY_6
-        )
-        self.label.pack(anchor="w", pady=(0, 4))
+        if label_text:
+            self.label = tk.Label(
+                self,
+                text=label_text,
+                bg=COLOR_SURFACE_1,
+                fg=COLOR_TEXT_SECONDARY,
+                font=FONT_BODY_6
+            )
+            self.label.pack(anchor="w", pady=(0, 4))
 
         self.entry_frame = tk.Frame(self, bg=COLOR_BORDER, padx=1, pady=1)
         self.entry_frame.pack(fill="x")
@@ -211,7 +354,7 @@ class LabeledEntry(tk.Frame):
             width=width
         )
         self.entry.insert(0, initial_value)
-        self.entry.pack(fill="x", ipady=4, padx=4)
+        self.entry.pack(fill="x", ipady=5, padx=6)
 
         self.entry.bind("<FocusIn>", lambda _: self.entry_frame.config(bg=COLOR_BORDER_HOT))
         self.entry.bind("<FocusOut>", lambda _: self.entry_frame.config(bg=COLOR_BORDER))
@@ -280,13 +423,14 @@ class SlidingPillNav(tk.Canvas):
         initial_index: int = 0,
         on_select: Optional[Callable[[int, str], None]] = None,
         height: int = 40,
-        bg_parent: str = COLOR_SURFACE_1,
-        bg_container: str = "#141414",
-        border_color: str = "#2C2C2C",
-        pill_color: str = "#FFFFFF",
-        text_active_color: str = "#0A0A0A",
-        text_inactive_color: str = "#8E8E93",
-        text_hover_color: str = "#FFFFFF",
+        bg_parent: str = COLOR_CONTAINER,
+        bg_container: str = "#F4F4F5",
+        border_color: str = "#E4E4E7",
+        pill_color: str = "#000000",
+        pill_border_color: str = "",
+        text_active_color: str = "#FFFFFF",
+        text_inactive_color: str = "#52525B",
+        text_hover_color: str = "#000000",
         padding_x: int = 18,
         font_size: int = 10,
         **kwargs
@@ -298,6 +442,7 @@ class SlidingPillNav(tk.Canvas):
         self.bg_container = bg_container
         self.border_color = border_color
         self.pill_color = pill_color
+        self.pill_border_color = pill_border_color
         self.text_active_color = text_active_color
         self.text_inactive_color = text_inactive_color
         self.text_hover_color = text_hover_color
@@ -455,6 +600,12 @@ class SlidingPillNav(tk.Canvas):
             self.create_arc(px1, 4, px1 + 2 * pr, h - 4, start=90, extent=180, fill=self.pill_color, outline="", style="pieslice")
             self.create_arc(px2 - 2 * pr, 4, px2, h - 4, start=270, extent=180, fill=self.pill_color, outline="", style="pieslice")
             self.create_rectangle(px1 + pr - 0.5, 4, px2 - pr + 0.5, h - 4, fill=self.pill_color, outline="")
+
+            if self.pill_border_color:
+                self.create_arc(px1, 4, px1 + 2 * pr, h - 4, start=90, extent=180, outline=self.pill_border_color, width=1.5, style="arc")
+                self.create_arc(px2 - 2 * pr, 4, px2, h - 4, start=270, extent=180, outline=self.pill_border_color, width=1.5, style="arc")
+                self.create_line(px1 + pr, 4, px2 - pr, 4, fill=self.pill_border_color, width=1.5)
+                self.create_line(px1 + pr, h - 4, px2 - pr, h - 4, fill=self.pill_border_color, width=1.5)
 
         # Crisp centered text labels snapped to integer coordinates
         center_y = round(h / 2.0)

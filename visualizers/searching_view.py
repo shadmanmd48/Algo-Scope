@@ -1,6 +1,6 @@
 """
 AlgoScope Searching Visualizer Module
-Interactive visualizer for Linear, Binary, Jump, and Interpolation search.
+Interactive visualizer for Linear, Binary, and Jump search.
 """
 
 import random
@@ -17,7 +17,7 @@ from core.theme import (
 )
 from ui.components import StyledButton, LabeledEntry, Badge
 from algorithms.searching import (
-    linear_search, binary_search, jump_search, interpolation_search
+    linear_search, binary_search, jump_search
 )
 
 class SearchingView(BaseVisualizerView):
@@ -26,8 +26,7 @@ class SearchingView(BaseVisualizerView):
         self.algo_functions = {
             "Linear Search": linear_search,
             "Binary Search": binary_search,
-            "Jump Search": jump_search,
-            "Interpolation Search": interpolation_search
+            "Jump Search": jump_search
         }
 
         super().__init__(
@@ -72,7 +71,7 @@ class SearchingView(BaseVisualizerView):
         btn_rand.pack(side="left", padx=(0, 10))
 
         # Sort Array Button (with notification indicator)
-        self.btn_sort = StyledButton(top_ctrl, text="Sort Array (Required for Binary/Jump/Interpolation)", size="sm", variant="secondary", command=self._sort_current_array)
+        self.btn_sort = StyledButton(top_ctrl, text="Sort Array (Required for Binary & Jump Search)", size="sm", variant="secondary", command=self._sort_current_array)
         self.btn_sort.pack(side="left", padx=(0, 14))
 
         # Target Input
@@ -111,7 +110,7 @@ class SearchingView(BaseVisualizerView):
     def _sort_current_array(self):
         self.raw_data.sort()
         self.reload_algorithm()
-        self.update_status("Array sorted. Binary, Jump, and Interpolation search are now valid.")
+        self.update_status("Array sorted. Binary and Jump Search are now valid.")
 
     def generate_random_array(self):
         # By default generate sorted array if non-linear search is active
@@ -125,7 +124,7 @@ class SearchingView(BaseVisualizerView):
         self.engine.reset()
 
         # Check if algorithm requires sorted array
-        needs_sorted = self.current_algo_name in ("Binary Search", "Jump Search", "Interpolation Search")
+        needs_sorted = self.current_algo_name in ("Binary Search", "Jump Search")
         is_sorted = (self.raw_data == sorted(self.raw_data))
 
         if needs_sorted and not is_sorted:
@@ -219,7 +218,7 @@ class SearchingView(BaseVisualizerView):
                     border_col = "#22D3EE"
                     text_col = "#000000"
             elif i in step.secondary_indices:
-                bg_color = "#272727"
+                bg_color = COLOR_SURFACE_2
                 border_col = COLOR_BORDER_HOT
 
             # Draw box with crisp pixel coordinates

@@ -249,6 +249,24 @@ class LandingPage(tk.Frame):
         btn_cta.bind("<Enter>", lambda _: btn_cta.config(bg="#27272A"))
         btn_cta.bind("<Leave>", lambda _: btn_cta.config(bg=COLOR_INK_BLACK))
 
+        # Sign Up Button
+        btn_signup = tk.Label(
+            right_box,
+            text="Sign Up",
+            bg=COLOR_CONTAINER,
+            fg=COLOR_INK_BLACK,
+            font=("Segoe UI", 11, "bold"),
+            padx=16,
+            pady=7,
+            cursor="hand2",
+            highlightthickness=1,
+            highlightbackground=COLOR_BORDER_SUBTLE
+        )
+        btn_signup.pack(side="right", padx=(0, 10))
+        btn_signup.bind("<Button-1>", lambda _: self._open_signup_modal())
+        btn_signup.bind("<Enter>", lambda _: btn_signup.config(bg=COLOR_CARD_LIGHT))
+        btn_signup.bind("<Leave>", lambda _: btn_signup.config(bg=COLOR_CONTAINER))
+
         # Subtle "Explore" ghost link next to CTA
         btn_explore_link = tk.Label(
             right_box,
@@ -293,6 +311,111 @@ class LandingPage(tk.Frame):
             lbl_link.bind("<Button-1>", lambda _e, action=cmd: action())
             lbl_link.bind("<Enter>", lambda _e, w=lbl_link: w.config(fg=COLOR_INK_BLACK))
             lbl_link.bind("<Leave>", lambda _e, w=lbl_link: w.config(fg=COLOR_INK_DARK))
+
+    # -------------------------------------------------------------
+    # SIGNUP MODAL OVERLAY
+    # -------------------------------------------------------------
+
+    def _open_signup_modal(self):
+        """Displays a sleek, modern signup modal directly inside the landing page."""
+        if hasattr(self, 'signup_overlay') and self.signup_overlay.winfo_exists():
+            return
+
+        # Dimmed backdrop overlay covering the entire LandingPage frame
+        self.signup_overlay = tk.Frame(self, bg="#0F172A")
+        self.signup_overlay.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+        # Centered Modal Card (White, subtle rounded appearance with 1px border)
+        card = tk.Frame(self.signup_overlay, bg="#FFFFFF", padx=32, pady=28, highlightthickness=1, highlightbackground=COLOR_BORDER_SUBTLE)
+        card.place(relx=0.5, rely=0.5, anchor="center", width=460)
+
+        # Header with Logo & Close button
+        top_bar = tk.Frame(card, bg="#FFFFFF")
+        top_bar.pack(fill="x", pady=(0, 16))
+
+        brand_box = tk.Frame(top_bar, bg="#FFFFFF")
+        brand_box.pack(side="left")
+
+        lbl_logo = tk.Label(brand_box, text="AlgoScope", bg="#FFFFFF", fg=COLOR_INK_BLACK, font=("Segoe UI", 16, "bold"))
+        lbl_logo.pack(side="left")
+
+        dot = tk.Canvas(brand_box, width=14, height=14, bg="#FFFFFF", highlightthickness=0)
+        dot.pack(side="left", padx=(4, 0))
+        dot.create_oval(1, 1, 13, 13, fill=COLOR_LIME, outline="")
+
+        btn_close = tk.Label(top_bar, text="✕", bg="#FFFFFF", fg=COLOR_INK_MUTED, font=("Segoe UI", 13, "bold"), cursor="hand2")
+        btn_close.pack(side="right")
+        btn_close.bind("<Button-1>", lambda _: self._close_signup_modal())
+        btn_close.bind("<Enter>", lambda _: btn_close.config(fg=COLOR_INK_BLACK))
+        btn_close.bind("<Leave>", lambda _: btn_close.config(fg=COLOR_INK_MUTED))
+
+        # Title & Subtitle
+        lbl_title = tk.Label(card, text="Create your Account", bg="#FFFFFF", fg=COLOR_INK_BLACK, font=("Segoe UI", 18, "bold"))
+        lbl_title.pack(anchor="w", pady=(0, 4))
+
+        lbl_sub = tk.Label(card, text="Join AlgoScope to save visualizer presets and analyze DSA performance.", bg="#FFFFFF", fg=COLOR_INK_MUTED, font=("Segoe UI", 10), wraplength=390, justify="left")
+        lbl_sub.pack(anchor="w", pady=(0, 20))
+
+        # Input fields helper
+        def make_field(label_text, is_password=False, default_val=""):
+            tk.Label(card, text=label_text, bg="#FFFFFF", fg=COLOR_INK_DARK, font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(0, 4))
+            f_frame = tk.Frame(card, bg=COLOR_CARD_LIGHT, padx=12, pady=8, highlightthickness=1, highlightbackground=COLOR_BORDER_SUBTLE)
+            f_frame.pack(fill="x", pady=(0, 14))
+            entry = tk.Entry(f_frame, bg=COLOR_CARD_LIGHT, fg=COLOR_INK_BLACK, font=("Segoe UI", 11), relief="flat", insertbackground=COLOR_INK_BLACK)
+            if is_password:
+                entry.config(show="•")
+            if default_val:
+                entry.insert(0, default_val)
+            entry.pack(fill="x")
+            return entry
+
+        entry_name = make_field("Full Name", default_val="Student Developer")
+        entry_email = make_field("Email Address", default_val="student@algoscope.io")
+        entry_password = make_field("Password", is_password=True, default_val="password123")
+
+        # Status / Feedback label
+        lbl_feedback = tk.Label(card, text="", bg="#FFFFFF", fg="#EF4444", font=("Segoe UI", 10, "bold"))
+        lbl_feedback.pack(anchor="w", pady=(0, 8))
+
+        # Submit Button (Solid Black Pill Button)
+        def on_submit():
+            name = entry_name.get().strip()
+            email = entry_email.get().strip()
+            if not name:
+                lbl_feedback.config(text="Please enter your name.", fg="#EF4444")
+                return
+            if not email or "@" not in email:
+                lbl_feedback.config(text="Please enter a valid email address.", fg="#EF4444")
+                return
+
+            lbl_feedback.config(text=f"✔ Welcome aboard, {name}! Account created.", fg="#10B981")
+            self.after(700, lambda: (self._close_signup_modal(), self.on_get_started()))
+
+        btn_submit = tk.Label(
+            card,
+            text="Sign Up & Get Started →",
+            bg=COLOR_INK_BLACK,
+            fg="#FFFFFF",
+            font=("Segoe UI", 11, "bold"),
+            padx=20,
+            pady=10,
+            cursor="hand2"
+        )
+        btn_submit.pack(fill="x", pady=(4, 12))
+        btn_submit.bind("<Button-1>", lambda _: on_submit())
+        btn_submit.bind("<Enter>", lambda _: btn_submit.config(bg="#27272A"))
+        btn_submit.bind("<Leave>", lambda _: btn_submit.config(bg=COLOR_INK_BLACK))
+
+        # Bottom text
+        lbl_terms = tk.Label(card, text="100% Free & Open Source • Runs locally on your machine", bg="#FFFFFF", fg=COLOR_INK_LIGHT, font=("Segoe UI", 9))
+        lbl_terms.pack(anchor="center")
+
+        # Close on Escape
+        self.signup_overlay.bind_all("<Escape>", lambda _: self._close_signup_modal())
+
+    def _close_signup_modal(self):
+        if hasattr(self, 'signup_overlay') and self.signup_overlay.winfo_exists():
+            self.signup_overlay.destroy()
 
     # -------------------------------------------------------------
     # 2. HERO SECTION — THE PROFINANCE COMPOSITION
@@ -1022,7 +1145,7 @@ class LandingPage(tk.Frame):
             (
                 "03 / SEARCH",
                 "Searching Visualizer",
-                "Step-by-step element probing with Linear, Binary, Jump, and Interpolation search boundary tracking on sorted and unsorted sets.",
+                "Step-by-step element probing with Linear, Binary, and Jump search boundary tracking on sorted and unsorted sets.",
                 "Searching"
             ),
             (
