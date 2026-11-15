@@ -14,8 +14,8 @@ from tkinter import ttk
 from typing import Optional
 
 from core.theme import (
-    COLOR_BLACK, COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
-    COLOR_TEXT_SECONDARY
+    COLOR_PAGE_BG, COLOR_CONTAINER, COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
+    COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_LIME
 )
 from ui.landing_page import LandingPage
 from ui.sidebar import Sidebar
@@ -48,13 +48,13 @@ class AlgoScopeApp:
 
         self.root.geometry(f"{target_w}x{target_h}")
         self.root.minsize(int(1024 * min(scale_factor, 1.15)), int(680 * min(scale_factor, 1.15)))
-        self.root.configure(bg=COLOR_BLACK)
+        self.root.configure(bg=COLOR_PAGE_BG)
 
-        # Style standard ttk widgets for dark mode
+        # Style standard ttk widgets for clean light mode
         self._configure_ttk_styles()
 
         # Master Container
-        self.main_container = tk.Frame(self.root, bg=COLOR_BLACK)
+        self.main_container = tk.Frame(self.root, bg=COLOR_PAGE_BG)
         self.main_container.pack(fill="both", expand=True)
 
         # App Layout Components
@@ -78,34 +78,34 @@ class AlgoScopeApp:
         style.configure(".", font=("Segoe UI", 10))
         style.configure(
             "TCombobox",
-            fieldbackground=COLOR_SURFACE_2,
-            background=COLOR_SURFACE_1,
-            foreground="#FFFFFF",
-            arrowcolor="#FFFFFF",
+            fieldbackground=COLOR_SURFACE_1,
+            background=COLOR_SURFACE_2,
+            foreground=COLOR_TEXT_PRIMARY,
+            arrowcolor=COLOR_TEXT_PRIMARY,
             bordercolor=COLOR_BORDER,
             lightcolor=COLOR_BORDER,
             darkcolor=COLOR_BORDER
         )
         style.map(
             "TCombobox",
-            fieldbackground=[("readonly", COLOR_SURFACE_2)],
+            fieldbackground=[("readonly", COLOR_SURFACE_1)],
             selectbackground=[("readonly", COLOR_SURFACE_2)],
-            selectforeground=[("readonly", "#FFFFFF")]
+            selectforeground=[("readonly", COLOR_TEXT_PRIMARY)]
         )
-        # Custom dark flat scrollbar with crisp perimeter border
+        # Custom flat scrollbar
         style.configure(
             "Vertical.TScrollbar",
             gripcount=0,
             background=COLOR_SURFACE_2,
             darkcolor=COLOR_SURFACE_1,
             lightcolor=COLOR_SURFACE_1,
-            troughcolor=COLOR_BLACK,
+            troughcolor=COLOR_PAGE_BG,
             bordercolor=COLOR_BORDER,
             arrowcolor=COLOR_TEXT_SECONDARY
         )
         style.map(
             "Vertical.TScrollbar",
-            background=[("active", COLOR_BORDER_HOT), ("disabled", COLOR_BLACK)]
+            background=[("active", COLOR_BORDER_HOT), ("disabled", COLOR_PAGE_BG)]
         )
 
     # ------------------ NAVIGATION FLOW ------------------
@@ -124,7 +124,7 @@ class AlgoScopeApp:
     def _ensure_app_shell(self):
         """Ensures the persistent application frame with sidebar is mounted."""
         if self.app_frame is None or not self.app_frame.winfo_exists():
-            self.app_frame = tk.Frame(self.main_container, bg=COLOR_BLACK)
+            self.app_frame = tk.Frame(self.main_container, bg=COLOR_PAGE_BG)
             self.app_frame.pack(fill="both", expand=True)
 
             self.sidebar = Sidebar(
@@ -134,7 +134,7 @@ class AlgoScopeApp:
             )
             self.sidebar.pack(side="left", fill="y")
 
-            self.content_area = tk.Frame(self.app_frame, bg=COLOR_BLACK)
+            self.content_area = tk.Frame(self.app_frame, bg=COLOR_PAGE_BG)
             self.content_area.pack(side="right", fill="both", expand=True)
 
     def show_dashboard(self):
@@ -219,4 +219,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

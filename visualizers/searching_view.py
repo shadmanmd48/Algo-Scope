@@ -219,7 +219,7 @@ class SearchingView(BaseVisualizerView):
                     border_col = "#22D3EE"
                     text_col = "#000000"
             elif i in step.secondary_indices:
-                bg_color = "#272727"
+                bg_color = COLOR_SURFACE_2
                 border_col = COLOR_BORDER_HOT
 
             # Draw box with crisp pixel coordinates

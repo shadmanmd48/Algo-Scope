@@ -7,8 +7,8 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Dict, List
 from core.theme import (
-    COLOR_BLACK, COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
-    COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_TEXT_MUTED,
+    COLOR_PAGE_BG, COLOR_CONTAINER, COLOR_SURFACE_1, COLOR_SURFACE_2, COLOR_BORDER, COLOR_BORDER_HOT,
+    COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_TEXT_MUTED, COLOR_LIME,
     STATE_DEFAULT, STATE_COMPARE, STATE_ACTIVE, STATE_SORTED, STATE_SECONDARY,
     FONT_HEADING_4, FONT_TITLE_2, FONT_TITLE_3, FONT_TITLE_4, FONT_BODY_6,
     FONT_BUTTON_SM, FONT_CAPTION_1, SPACING_100, SPACING_200
@@ -20,7 +20,7 @@ from data.algorithm_info import ALGORITHM_DATA
 class PerformanceView(tk.Frame):
     """Executes real-time benchmark profiling and renders comparative Canvas charts."""
     def __init__(self, master, on_back: Callable[[], None]):
-        super().__init__(master, bg=COLOR_BLACK)
+        super().__init__(master, bg=COLOR_PAGE_BG)
         self.on_back_to_dashboard = on_back
 
         self.available_algos = list(BENCHMARK_FUNCTIONS.keys())
@@ -63,7 +63,7 @@ class PerformanceView(tk.Frame):
         lbl.pack(side="left")
 
     def _build_content(self):
-        body = tk.Frame(self, bg=COLOR_BLACK)
+        body = tk.Frame(self, bg=COLOR_PAGE_BG)
         body.pack(fill="both", expand=True, padx=SPACING_100, pady=SPACING_100)
 
         # Left Settings & Controls Card
