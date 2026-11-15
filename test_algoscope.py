@@ -17,7 +17,7 @@ from algorithms.sorting import (
     bubble_sort, selection_sort, insertion_sort, merge_sort, quick_sort, heap_sort
 )
 from algorithms.searching import (
-    linear_search, binary_search, jump_search, interpolation_search
+    linear_search, binary_search, jump_search
 )
 from algorithms.graphs import (
     bfs, dfs, dijkstra, a_star, prim_mst, kruskal_mst
@@ -57,7 +57,7 @@ class TestAlgoScopeLogic(unittest.TestCase):
         arr = [3, 8, 14, 22, 35, 47, 59, 71, 88, 96]
         target = 47
 
-        for search_fn in [linear_search, binary_search, jump_search, interpolation_search]:
+        for search_fn in [linear_search, binary_search, jump_search]:
             gen = search_fn(arr, target)
             found = False
             for step in gen:

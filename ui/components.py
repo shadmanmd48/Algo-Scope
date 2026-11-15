@@ -200,6 +200,113 @@ class CardFrame(tk.Frame):
         self.body.bind("<Leave>", lambda _: self.config(bg=self.default_border))
 
 
+class RoundedCardFrame(tk.Canvas):
+    """
+    Modern card container with slightly curved edges (rounded corners) and subtle theme color touch:
+    - Smooth curved corners (default radius 12px)
+    - Delicate electric lime theme accent stripe along top or dot indicator
+    - Subtle 1px perimeter border #E4E4E7 with soft theme hover
+    - Inner body frame for standard packing of child widgets
+    """
+    def __init__(
+        self,
+        master,
+        bg: str = COLOR_SURFACE_1,
+        border_color: str = COLOR_BORDER,
+        bg_parent: str = COLOR_PAGE_BG,
+        radius: int = 12,
+        accent_color: str = COLOR_LIME,
+        show_accent: bool = True,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        **kwargs
+    ):
+        canvas_kwargs = {}
+        if height is not None:
+            canvas_kwargs['height'] = height
+        if width is not None:
+            canvas_kwargs['width'] = width
+        super().__init__(master, bg=bg_parent, highlightthickness=0, **canvas_kwargs, **kwargs)
+        self.radius = radius
+        self.card_bg = bg
+        self.border_color = border_color
+        self.hover_border = "#B8F500"  # Subtle electric lime accent on hover
+        self.accent_color = accent_color
+        self.show_accent = show_accent
+        self.is_hover = False
+
+        self.body = tk.Frame(self, bg=self.card_bg)
+        self.window_id = self.create_window(0, 0, window=self.body, anchor="nw")
+
+        self.bind("<Configure>", self._on_configure)
+        self.body.bind("<Configure>", self._on_body_configure)
+        self.bind("<Enter>", lambda _: self._set_hover(True))
+        self.bind("<Leave>", lambda _: self._set_hover(False))
+        self.body.bind("<Enter>", lambda _: self._set_hover(True))
+        self.body.bind("<Leave>", lambda _: self._set_hover(False))
+
+    def _set_hover(self, hover: bool):
+        self.is_hover = hover
+        self._redraw()
+
+    def _on_body_configure(self, e):
+        pad_x = 14
+        pad_y = 14
+        req_h = self.body.winfo_reqheight() + 2 * pad_y
+        try:
+            cur_h = int(self.cget("height"))
+        except (ValueError, tk.TclError):
+            cur_h = 0
+        if cur_h < req_h:
+            self.config(height=req_h)
+
+    def _on_configure(self, e):
+        pad_x = 14
+        pad_y = 14
+        w = e.width
+        h = e.height
+        self.coords(self.window_id, pad_x, pad_y)
+        self.itemconfig(self.window_id, width=max(1, w - 2 * pad_x), height=max(1, h - 2 * pad_y))
+        self._redraw()
+
+    def _redraw(self):
+        self.delete("all_shapes")
+        w = self.winfo_width()
+        h = self.winfo_height()
+        if w < 10 or h < 10:
+            return
+        r = self.radius
+        border = self.hover_border if self.is_hover else self.border_color
+        border_w = 2 if self.is_hover else 1
+
+        x0, y0, x1, y1 = 1, 1, w - 2, h - 2
+
+        # 1. Fill rounded rectangle
+        self.create_arc(x0, y0, x0 + 2*r, y0 + 2*r, start=90, extent=90, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_arc(x1 - 2*r, y0, x1, y0 + 2*r, start=0, extent=90, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_arc(x1 - 2*r, y1 - 2*r, x1, y1, start=270, extent=90, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_arc(x0, y1 - 2*r, x0 + 2*r, y1, start=180, extent=90, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_rectangle(x0 + r, y0, x1 - r, y1, fill=self.card_bg, outline="", tags="all_shapes")
+        self.create_rectangle(x0, y0 + r, x1, y1 - r, fill=self.card_bg, outline="", tags="all_shapes")
+
+        # 2. Subtle top theme accent stripe (very delicate 3px rounded line)
+        if self.show_accent:
+            accent_len = min(56, max(32, w * 0.22))
+            self.create_line(x0 + r + 4, y0 + 1, x0 + r + 4 + accent_len, y0 + 1, fill=self.accent_color, width=3, tags="all_shapes", capstyle="round")
+
+        # 3. Perimeter border with curved arcs
+        self.create_arc(x0, y0, x0 + 2*r, y0 + 2*r, start=90, extent=90, outline=border, width=border_w, style="arc", tags="all_shapes")
+        self.create_arc(x1 - 2*r, y0, x1, y0 + 2*r, start=0, extent=90, outline=border, width=border_w, style="arc", tags="all_shapes")
+        self.create_arc(x1 - 2*r, y1 - 2*r, x1, y1, start=270, extent=90, outline=border, width=border_w, style="arc", tags="all_shapes")
+        self.create_arc(x0, y1 - 2*r, x0 + 2*r, y1, start=180, extent=90, outline=border, width=border_w, style="arc", tags="all_shapes")
+        self.create_line(x0 + r, y0, x1 - r, y0, fill=border, width=border_w, tags="all_shapes")
+        self.create_line(x0 + r, y1, x1 - r, y1, fill=border, width=border_w, tags="all_shapes")
+        self.create_line(x0, y0 + r, x0, y1 - r, fill=border, width=border_w, tags="all_shapes")
+        self.create_line(x1, y0 + r, x1, y1 - r, fill=border, width=border_w, tags="all_shapes")
+
+        self.tag_lower("all_shapes")
+
+
 class Badge(tk.Frame):
     """Small rounded pill status or metric chip."""
     def __init__(self, master, text: str, bg_color: str = COLOR_SURFACE_2, fg_color: str = COLOR_TEXT_PRIMARY, **kwargs):
@@ -320,6 +427,7 @@ class SlidingPillNav(tk.Canvas):
         bg_container: str = "#F4F4F5",
         border_color: str = "#E4E4E7",
         pill_color: str = "#000000",
+        pill_border_color: str = "",
         text_active_color: str = "#FFFFFF",
         text_inactive_color: str = "#52525B",
         text_hover_color: str = "#000000",
@@ -334,6 +442,7 @@ class SlidingPillNav(tk.Canvas):
         self.bg_container = bg_container
         self.border_color = border_color
         self.pill_color = pill_color
+        self.pill_border_color = pill_border_color
         self.text_active_color = text_active_color
         self.text_inactive_color = text_inactive_color
         self.text_hover_color = text_hover_color
@@ -491,6 +600,12 @@ class SlidingPillNav(tk.Canvas):
             self.create_arc(px1, 4, px1 + 2 * pr, h - 4, start=90, extent=180, fill=self.pill_color, outline="", style="pieslice")
             self.create_arc(px2 - 2 * pr, 4, px2, h - 4, start=270, extent=180, fill=self.pill_color, outline="", style="pieslice")
             self.create_rectangle(px1 + pr - 0.5, 4, px2 - pr + 0.5, h - 4, fill=self.pill_color, outline="")
+
+            if self.pill_border_color:
+                self.create_arc(px1, 4, px1 + 2 * pr, h - 4, start=90, extent=180, outline=self.pill_border_color, width=1.5, style="arc")
+                self.create_arc(px2 - 2 * pr, 4, px2, h - 4, start=270, extent=180, outline=self.pill_border_color, width=1.5, style="arc")
+                self.create_line(px1 + pr, 4, px2 - pr, 4, fill=self.pill_border_color, width=1.5)
+                self.create_line(px1 + pr, h - 4, px2 - pr, h - 4, fill=self.pill_border_color, width=1.5)
 
         # Crisp centered text labels snapped to integer coordinates
         center_y = round(h / 2.0)

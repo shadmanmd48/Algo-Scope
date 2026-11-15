@@ -1,6 +1,6 @@
 """
 AlgoScope Searching Algorithms
-Real implementations of Linear, Binary, Jump, and Interpolation search yielding step snapshots.
+Real implementations of Linear, Binary, and Jump search yielding step snapshots.
 """
 
 import math
@@ -228,99 +228,4 @@ def jump_search(arr: List[int], target: int) -> Generator[Step, None, None]:
             metrics={"comparisons": comparisons, "found_index": -1}
         )
 
-
-def interpolation_search(arr: List[int], target: int) -> Generator[Step, None, None]:
-    """Interpolation search using linear interpolation formula."""
-    a = list(arr)
-    n = len(a)
-    comparisons = 0
-    low = 0
-    high = n - 1
-
-    yield Step(
-        action="start",
-        state=list(a),
-        indices=[],
-        secondary_indices=[low, high],
-        pseudocode_line=0,
-        message=f"Starting Interpolation Search for target {target} across range [0..{high}].",
-        metrics={"comparisons": comparisons}
-    )
-
-    while low <= high and target >= a[low] and target <= a[high]:
-        comparisons += 1
-        if low == high:
-            if a[low] == target:
-                yield Step(
-                    action="found",
-                    state=list(a),
-                    indices=[low],
-                    pseudocode_line=2,
-                    message=f"Single remaining element arr[{low}] matches target {target}!",
-                    metrics={"comparisons": comparisons, "found_index": low}
-                )
-                return
-            break
-
-        # Interpolation formula
-        denominator = a[high] - a[low]
-        if denominator == 0:
-            pos = low
-        else:
-            pos = low + int(((float(high - low) / denominator) * (target - a[low])))
-
-        pos = max(low, min(pos, high))
-
-        yield Step(
-            action="probe",
-            state=list(a),
-            indices=[pos],
-            secondary_indices=[low, high],
-            pseudocode_line=1,
-            message=f"Probing interpolated position {pos}: arr[{pos}] = {a[pos]} (range [{low}..{high}])",
-            metrics={"comparisons": comparisons}
-        )
-
-        if a[pos] == target:
-            yield Step(
-                action="found",
-                state=list(a),
-                indices=[pos],
-                secondary_indices=[low, high],
-                pseudocode_line=2,
-                message=f"Target {target} found at interpolated index {pos} in {comparisons} comparisons!",
-                metrics={"comparisons": comparisons, "found_index": pos}
-            )
-            return
-        elif a[pos] < target:
-            yield Step(
-                action="compare",
-                state=list(a),
-                indices=[pos],
-                secondary_indices=[pos + 1, high],
-                pseudocode_line=3,
-                message=f"arr[{pos}]={a[pos]} < target {target}. Adjusting search lower bound.",
-                metrics={"comparisons": comparisons}
-            )
-            low = pos + 1
-        else:
-            yield Step(
-                action="compare",
-                state=list(a),
-                indices=[pos],
-                secondary_indices=[low, pos - 1],
-                pseudocode_line=4,
-                message=f"arr[{pos}]={a[pos]} > target {target}. Adjusting search upper bound.",
-                metrics={"comparisons": comparisons}
-            )
-            high = pos - 1
-
-    yield Step(
-        action="not_found",
-        state=list(a),
-        indices=[],
-        pseudocode_line=5,
-        message=f"Target {target} not found after {comparisons} comparisons.",
-        metrics={"comparisons": comparisons, "found_index": -1}
-    )
 

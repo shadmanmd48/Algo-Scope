@@ -15,7 +15,7 @@ from core.theme import (
     FONT_BODY_3, FONT_BODY_6, FONT_CODE_SM, FONT_BUTTON_SM, FONT_CAPTION_1,
     SPACING_50, SPACING_75, SPACING_100, SPACING_200, SPACING_300, BTN_PAD_X, BTN_PAD_Y
 )
-from ui.components import StyledButton, CardFrame, Badge, LabeledEntry, SlidingPillNav
+from ui.components import StyledButton, CardFrame, RoundedCardFrame, Badge, LabeledEntry, SlidingPillNav
 from data.algorithm_info import ALGORITHM_DATA, AlgorithmInfo
 
 class BaseVisualizerView(tk.Frame):
@@ -81,18 +81,23 @@ class BaseVisualizerView(tk.Frame):
         border_top.pack(fill="x", side="top")
 
         # Dedicated Horizontal Algorithm Selector Bar directly below the header
-        self.algo_strip = tk.Frame(self, bg=COLOR_SURFACE_1, height=48)
+        self.algo_strip = tk.Frame(self, bg=COLOR_SURFACE_1, height=56)
         self.algo_strip.pack(fill="x", side="top")
 
         algo_inner = tk.Frame(self.algo_strip, bg=COLOR_SURFACE_1)
-        algo_inner.pack(side="left", padx=SPACING_200, pady=(6, 6))
+        algo_inner.pack(anchor="center", pady=(8, 8))
+
+        # Electric lime theme indicator dot
+        dot = tk.Canvas(algo_inner, width=8, height=8, bg=COLOR_SURFACE_1, highlightthickness=0)
+        dot.pack(side="left", padx=(0, 6))
+        dot.create_oval(1, 1, 7, 7, fill=COLOR_LIME, outline="")
 
         lbl_algo = tk.Label(
             algo_inner,
             text="Algorithm:",
             bg=COLOR_SURFACE_1,
-            fg=COLOR_TEXT_MUTED,
-            font=FONT_CAPTION_1
+            fg=COLOR_TEXT_PRIMARY,
+            font=FONT_TITLE_4
         )
         lbl_algo.pack(side="left", padx=(0, SPACING_100))
 
@@ -105,10 +110,15 @@ class BaseVisualizerView(tk.Frame):
             items=self.algorithms,
             initial_index=initial_idx,
             on_select=lambda idx, name: self.select_algorithm(name),
-            height=36,
-            padding_x=14,
-            font_size=9,
-            bg_parent=COLOR_SURFACE_1
+            height=42,
+            padding_x=20,
+            font_size=10,
+            bg_parent=COLOR_SURFACE_1,
+            bg_container="#F8FDE8",
+            border_color=COLOR_LIME,
+            pill_border_color=COLOR_LIME,
+            text_inactive_color="#3F3F46",
+            text_hover_color="#000000"
         )
         self.algo_nav.pack(side="left")
 
@@ -127,16 +137,15 @@ class BaseVisualizerView(tk.Frame):
     def _build_main_content(self):
         """Split view: Left Canvas area + Right Information Drawer."""
         self.content_frame = tk.Frame(self, bg=COLOR_PAGE_BG)
-        self.content_frame.pack(fill="both", expand=True, padx=SPACING_100, pady=SPACING_100)
+        self.content_frame.pack(fill="both", expand=True, padx=SPACING_300, pady=SPACING_200)
 
         # Left Canvas Container
-        self.canvas_card = CardFrame(self.content_frame, bg=COLOR_SURFACE_1)
-        self.canvas_card.pack(side="left", fill="both", expand=True, padx=(0, SPACING_100))
+        self.canvas_card = RoundedCardFrame(self.content_frame, bg=COLOR_SURFACE_1, radius=14, show_accent=True)
+        self.canvas_card.pack(side="left", fill="both", expand=True, padx=(0, SPACING_200))
 
         # Right Information Drawer
-        self.info_card = CardFrame(self.content_frame, bg=COLOR_SURFACE_1, width=340)
+        self.info_card = RoundedCardFrame(self.content_frame, bg=COLOR_SURFACE_1, radius=14, show_accent=False, width=340)
         self.info_card.pack(side="right", fill="y", expand=False)
-        self.info_card.pack_propagate(False)
 
         self._build_info_drawer(self.info_card.body)
 
@@ -214,26 +223,6 @@ class BaseVisualizerView(tk.Frame):
             justify="left"
         )
         self.lbl_description.pack(anchor="w", padx=SPACING_100, pady=(0, 6))
-
-        lbl_use_title = tk.Label(
-            parent,
-            text="Practical Use Cases",
-            bg=COLOR_SURFACE_1,
-            fg=COLOR_TEXT_PRIMARY,
-            font=FONT_TITLE_2
-        )
-        lbl_use_title.pack(anchor="w", padx=SPACING_100, pady=(4, 2))
-
-        self.lbl_use_cases = tk.Label(
-            parent,
-            text="",
-            bg=COLOR_SURFACE_1,
-            fg=COLOR_TEXT_SECONDARY,
-            font=FONT_BODY_6,
-            wraplength=310,
-            justify="left"
-        )
-        self.lbl_use_cases.pack(anchor="w", padx=SPACING_100)
 
     def _build_control_bar(self):
         """Unified playback and metrics control bar at bottom."""
@@ -322,7 +311,6 @@ class BaseVisualizerView(tk.Frame):
         self.lbl_worst.config(text=info.worst_time)
         self.lbl_space.config(text=info.space_complexity)
         self.lbl_description.config(text=info.description)
-        self.lbl_use_cases.config(text="\n".join([f"• {u}" for u in info.use_cases]))
 
         # Rebuild pseudocode labels in dark code block
         for w in self.pseudo_container.winfo_children():

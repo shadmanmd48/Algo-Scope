@@ -14,7 +14,7 @@ from core.theme import (
     FONT_BODY_3, FONT_BODY_6, FONT_BUTTON_SM, FONT_CAPTION_1,
     SPACING_100, SPACING_200, SPACING_300, SPACING_400
 )
-from ui.components import CardFrame, StyledButton, Badge
+from ui.components import CardFrame, RoundedCardFrame, StyledButton, Badge
 
 class DashboardView(tk.Frame):
     """The central hub providing quick access to all 6 DSA modules."""
@@ -90,42 +90,42 @@ class DashboardView(tk.Frame):
                 "id": "Sorting",
                 "category": "01 / ARRAYS",
                 "title": "Sorting Visualizer",
-                "desc": "Bubble, Selection, Insertion, Merge, Quick, and Heap Sort with dynamic bar animations, pivot indicators, and live swap counters.",
+                "desc": "Step-by-step bar animations for Bubble, Selection, Insertion, Merge, Quick, and Heap Sort with live comparison and swap telemetry.",
                 "color": "#3B82F6"
             },
             {
                 "id": "Graphs",
                 "category": "02 / NETWORKS",
                 "title": "Graph Visualizer",
-                "desc": "Interactive topology builder. Test BFS, DFS, Dijkstra's shortest path, A* search, and Prim's & Kruskal's Minimum Spanning Trees.",
+                "desc": "Interactive topology builder. Execute BFS, DFS, Dijkstra, A*, and Prim's & Kruskal's Minimum Spanning Trees in real time.",
                 "color": "#8B5CF6"
             },
             {
                 "id": "Searching",
                 "category": "03 / SEARCH",
                 "title": "Searching Visualizer",
-                "desc": "Step-by-step element probing with Linear, Binary, Jump, and Interpolation search boundary tracking on sorted and unsorted sets.",
+                "desc": "Boundary and probe tracking across Linear, Binary, and Jump search algorithms on sorted and unsorted sets.",
                 "color": "#10B981"
             },
             {
                 "id": "Trees",
                 "category": "04 / HIERARCHY",
                 "title": "Tree Visualizer",
-                "desc": "Dynamic BST and self-balancing AVL trees. Follow balance factor computations, LL/RR/LR/RL rotation mechanics, and 4 traversals.",
+                "desc": "Dynamic BST and self-balancing AVL trees. Follow balance factor checks, LL/RR/LR/RL rotations, and complete tree traversals.",
                 "color": "#EC4899"
             },
             {
                 "id": "Data Structures",
                 "category": "05 / MEMORY",
                 "title": "Data Structures",
-                "desc": "Watch Stacks (LIFO), Queues (FIFO), Circular Buffers, Singly & Doubly Linked Lists, and Hash Table collision resolution mutate in memory.",
+                "desc": "Live memory layout for Stacks (LIFO), Queues (FIFO), Circular Buffers, Linked Lists, and Hash Table collision resolution.",
                 "color": "#06B6D4"
             },
             {
                 "id": "Performance",
                 "category": "06 / BENCHMARKS",
                 "title": "Performance Analyzer",
-                "desc": "Benchmark actual CPU wall-clock runtime in milliseconds with time.perf_counter(). Compare operations against Big-O bounds.",
+                "desc": "Profile actual CPU wall-clock runtime in milliseconds with time.perf_counter() and compare operation counts against Big-O bounds.",
                 "color": "#F59E0B"
             }
         ]
@@ -140,7 +140,7 @@ class DashboardView(tk.Frame):
         bottom_f = tk.Frame(container, bg=COLOR_PAGE_BG)
         bottom_f.pack(fill="x", pady=(SPACING_400, SPACING_200))
 
-        feat_card = CardFrame(bottom_f, bg=COLOR_SURFACE_1)
+        feat_card = RoundedCardFrame(bottom_f, bg=COLOR_SURFACE_1, radius=14, show_accent=True)
         feat_card.pack(fill="x")
 
         feat_inner = tk.Frame(feat_card.body, bg=COLOR_SURFACE_1, padx=SPACING_300, pady=SPACING_300)
@@ -192,22 +192,29 @@ class DashboardView(tk.Frame):
             lbl_b = tk.Label(item_f, text=body_desc, bg=COLOR_SURFACE_1, fg=COLOR_TEXT_SECONDARY, font=FONT_BODY_6, wraplength=480, justify="left")
             lbl_b.pack(anchor="w", pady=(2, 0))
 
-    def _create_module_card(self, parent, mod: dict) -> tk.Frame:
-        card = CardFrame(parent, bg=COLOR_SURFACE_1)
+    def _create_module_card(self, parent, mod: dict) -> tk.Widget:
+        card = RoundedCardFrame(parent, bg=COLOR_SURFACE_1, radius=12, show_accent=True, height=230)
         p = card.body
 
-        inner = tk.Frame(p, bg=COLOR_SURFACE_1, padx=SPACING_200, pady=SPACING_200)
+        inner = tk.Frame(p, bg=COLOR_SURFACE_1, padx=SPACING_100, pady=SPACING_100)
         inner.pack(fill="both", expand=True)
 
-        # Category Tag (e.g. 01 / ARRAYS)
+        # Category Tag Row with subtle electric lime dot indicator
+        cat_row = tk.Frame(inner, bg=COLOR_SURFACE_1)
+        cat_row.pack(anchor="w", pady=(0, 6))
+
+        dot = tk.Canvas(cat_row, width=8, height=8, bg=COLOR_SURFACE_1, highlightthickness=0)
+        dot.pack(side="left", padx=(0, 6))
+        dot.create_oval(1, 1, 7, 7, fill=COLOR_LIME, outline="")
+
         lbl_cat = tk.Label(
-            inner,
+            cat_row,
             text=mod["category"],
             bg=COLOR_SURFACE_1,
             fg=COLOR_TEXT_SECONDARY,
             font=FONT_CAPTION_1
         )
-        lbl_cat.pack(anchor="w", pady=(0, 6))
+        lbl_cat.pack(side="left")
 
         # Title
         lbl_title = tk.Label(
@@ -217,20 +224,26 @@ class DashboardView(tk.Frame):
             fg=COLOR_TEXT_PRIMARY,
             font=FONT_TITLE_1
         )
-        lbl_title.pack(anchor="w", pady=(0, 8))
+        lbl_title.pack(anchor="w", pady=(0, 6))
 
-        # Description
+        # Description (Naturally flows across lines without truncation)
         lbl_desc = tk.Label(
             inner,
             text=mod["desc"],
             bg=COLOR_SURFACE_1,
             fg=COLOR_TEXT_SECONDARY,
             font=FONT_BODY_6,
-            wraplength=260,
-            justify="left",
-            height=4
+            wraplength=280,
+            justify="left"
         )
         lbl_desc.pack(anchor="w", pady=(0, 16))
+
+        # Dynamically adjust wraplength to fill card width on resize
+        def _on_card_resize(e):
+            if e.width > 50:
+                lbl_desc.config(wraplength=max(220, e.width - 24))
+
+        inner.bind("<Configure>", _on_card_resize)
 
         # Explore Button (Rounded Pill Button)
         btn_launch = StyledButton(

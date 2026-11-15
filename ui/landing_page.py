@@ -1145,7 +1145,7 @@ class LandingPage(tk.Frame):
             (
                 "03 / SEARCH",
                 "Searching Visualizer",
-                "Step-by-step element probing with Linear, Binary, Jump, and Interpolation search boundary tracking on sorted and unsorted sets.",
+                "Step-by-step element probing with Linear, Binary, and Jump search boundary tracking on sorted and unsorted sets.",
                 "Searching"
             ),
             (

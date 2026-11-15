@@ -11,9 +11,9 @@ from core.theme import (
     COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_TEXT_MUTED, COLOR_LIME,
     STATE_DEFAULT, STATE_COMPARE, STATE_ACTIVE, STATE_SORTED, STATE_SECONDARY,
     FONT_HEADING_4, FONT_TITLE_2, FONT_TITLE_3, FONT_TITLE_4, FONT_BODY_6,
-    FONT_BUTTON_SM, FONT_CAPTION_1, SPACING_100, SPACING_200
+    FONT_BUTTON_SM, FONT_CAPTION_1, SPACING_100, SPACING_200, SPACING_300
 )
-from ui.components import StyledButton, CardFrame, LabeledEntry
+from ui.components import StyledButton, CardFrame, RoundedCardFrame, LabeledEntry
 from algorithms.benchmarks import BENCHMARK_FUNCTIONS, run_benchmark
 from data.algorithm_info import ALGORITHM_DATA
 
@@ -64,15 +64,14 @@ class PerformanceView(tk.Frame):
 
     def _build_content(self):
         body = tk.Frame(self, bg=COLOR_PAGE_BG)
-        body.pack(fill="both", expand=True, padx=SPACING_100, pady=SPACING_100)
+        body.pack(fill="both", expand=True, padx=SPACING_300, pady=SPACING_200)
 
         # Left Settings & Controls Card
-        self.left_card = CardFrame(body, bg=COLOR_SURFACE_1, width=320)
-        self.left_card.pack(side="left", fill="y", padx=(0, SPACING_100))
-        self.left_card.pack_propagate(False)
+        self.left_card = RoundedCardFrame(body, bg=COLOR_SURFACE_1, radius=14, show_accent=False, width=320)
+        self.left_card.pack(side="left", fill="y", padx=(0, SPACING_200))
 
         # Right Visualization Canvas Card
-        self.canvas_card = CardFrame(body, bg=COLOR_SURFACE_1)
+        self.canvas_card = RoundedCardFrame(body, bg=COLOR_SURFACE_1, radius=14, show_accent=True)
         self.canvas_card.pack(side="right", fill="both", expand=True)
 
         self._build_settings_panel(self.left_card.body)
